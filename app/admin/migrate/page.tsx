@@ -5,7 +5,7 @@ import { useState } from 'react'
 export default function MigratePage() {
   const [copied, setCopied] = useState(false)
 
-  const sql = \`-- 1. 프로필 테이블 생성
+  const sql = `-- 1. 프로필 테이블 생성
 CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
   email text,
@@ -63,7 +63,7 @@ ADD COLUMN IF NOT EXISTS admin_capacity text null,
 ADD COLUMN IF NOT EXISTS admin_color text null,
 ADD COLUMN IF NOT EXISTS admin_etc text null,
 ADD COLUMN IF NOT EXISTS admin_rerequest_note text null,
-ADD COLUMN IF NOT EXISTS user_selected_options jsonb null;\`
+ADD COLUMN IF NOT EXISTS user_selected_options jsonb null;`
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(sql)
