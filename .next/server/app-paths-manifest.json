@@ -1,7 +1,1 @@
-{
-  "/page": "app/page.js",
-  "/dev/setup/page": "app/dev/setup/page.js",
-  "/mypage/page": "app/mypage/page.js",
-  "/partner/page": "app/partner/page.js",
-  "/admin/page": "app/admin/page.js"
-}
+{}

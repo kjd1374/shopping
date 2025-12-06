@@ -1,7 +1,8 @@
 'use server'
 
-import puppeteer, { Browser } from 'puppeteer'
+import { Browser } from 'puppeteer-core'
 import * as cheerio from 'cheerio'
+import { getBrowser } from '../lib/puppeteer'
 
 export interface PreviewResult {
   url: string
@@ -22,7 +23,7 @@ export async function getUrlPreview(url: string): Promise<PreviewResult> {
   let browser: Browser | null = null
 
   try {
-    browser = await puppeteer.launch({ headless: true })
+    browser = await getBrowser()
     const page = await browser.newPage()
 
     // 헤더 강화

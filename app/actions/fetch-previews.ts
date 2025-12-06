@@ -1,7 +1,8 @@
 'use server'
 
-import puppeteer, { Browser, Page } from 'puppeteer'
+import { Browser, Page } from 'puppeteer-core'
 import * as cheerio from 'cheerio'
+import { getBrowser } from '../lib/puppeteer'
 
 export interface ProductPreview {
   url: string
@@ -23,7 +24,7 @@ export async function fetchProductPreviews(urls: string[]): Promise<ProductPrevi
 
   try {
     // 브라우저 인스턴스 하나만 생성
-    browser = await puppeteer.launch({ headless: true })
+    browser = await getBrowser()
 
     // 병렬 처리를 위해 모든 페이지 작업을 Promise 배열로 생성
     const tasks = targetUrls.map(async (url) => {
@@ -83,4 +84,3 @@ export async function fetchProductPreviews(urls: string[]): Promise<ProductPrevi
     if (browser) await browser.close().catch(() => { })
   }
 }
-

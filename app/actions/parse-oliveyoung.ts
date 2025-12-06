@@ -2,7 +2,8 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import * as cheerio from 'cheerio'
-import puppeteer, { Browser, Page } from 'puppeteer'
+import { Browser, Page } from 'puppeteer-core'
+import { getBrowser } from '../lib/puppeteer'
 
 // 응답 타입 정의
 export interface ProductOption {
@@ -69,7 +70,7 @@ export async function parseOliveYoung(url: string): Promise<OliveYoungResult> {
   let html = ''
 
   try {
-    browser = await puppeteer.launch({ headless: true })
+    browser = await getBrowser()
     const page = await browser.newPage()
     await page.setUserAgent(USER_AGENT)
 
