@@ -143,6 +143,12 @@ export default function AdminDashboard() {
           </div>
           <div className="flex gap-2">
             <a
+              href="/admin/users"
+              className="text-xs font-bold text-slate-700 bg-white border border-slate-300 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              👥 사용자 관리
+            </a>
+            <a
               href="/admin/batches"
               className="text-xs font-bold text-slate-700 bg-white border border-slate-300 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
             >

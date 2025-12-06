@@ -194,3 +194,37 @@ export async function assignRequestsToBatch(batchId: string, requestIds: string[
     return { success: false, error: error.message }
   }
 }
+
+// 사용자 목록 조회
+export async function getUsers() {
+  try {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return { success: true, data }
+  } catch (error: any) {
+    console.error('Get users error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+// 사용자 권한 변경
+export async function updateUserRole(userId: string, newRole: 'user' | 'partner' | 'admin') {
+  try {
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: newRole })
+      .eq('id', userId)
+
+    if (error) throw error
+    return { success: true }
+  } catch (error: any) {
+    console.error('Update role error:', error)
+    return { success: false, error: error.message }
+  }
+}
