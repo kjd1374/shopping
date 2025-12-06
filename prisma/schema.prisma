@@ -1,0 +1,26 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ProductRequest {
+  id           Int      @id @default(autoincrement())
+  url          String
+  title        String?
+  imageUrl     String?
+  status       String   @default("PENDING") // PENDING, PROCESSED, COMPLETED 등
+  
+  // 관리자가 나중에 입력할 필드
+  adminPrice   Decimal? // 가격
+  adminOptions String?  // 옵션 정보 (JSON string 등으로 저장)
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

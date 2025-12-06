@@ -1,0 +1,150 @@
+{
+  "node": {
+    "4fd3386d83c89bcab124f04c940b2fd14cc9a0c5": {
+      "workers": {
+        "app/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cscrape-ranking.ts%22%2C%5B%22scrapeOliveYoungRanking%22%5D%5D%2C%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cpreview-url.ts%22%2C%5B%22getUrlPreview%22%5D%5D%2C%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Csubmit-request.ts%22%2C%5B%22submitProductRequest%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/page": "action-browser"
+      }
+    },
+    "deb30c76eb4df57397409f6dcdf18161c17985b4": {
+      "workers": {
+        "app/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cscrape-ranking.ts%22%2C%5B%22scrapeOliveYoungRanking%22%5D%5D%2C%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cpreview-url.ts%22%2C%5B%22getUrlPreview%22%5D%5D%2C%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Csubmit-request.ts%22%2C%5B%22submitProductRequest%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/page": "action-browser"
+      }
+    },
+    "09d5be36e3dd3503af66cea43f980ebc452404ff": {
+      "workers": {
+        "app/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cscrape-ranking.ts%22%2C%5B%22scrapeOliveYoungRanking%22%5D%5D%2C%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cpreview-url.ts%22%2C%5B%22getUrlPreview%22%5D%5D%2C%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Csubmit-request.ts%22%2C%5B%22submitProductRequest%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/page": "action-browser"
+      }
+    },
+    "069e00c9b994e73515dbac5b3413c828ac042f41": {
+      "workers": {
+        "app/admin/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cadmin.ts%22%2C%5B%22updateRequestItem%22%2C%22getRequests%22%2C%22updateRequestStatus%22%2C%22getRequestDetails%22%2C%22confirmRequest%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/admin/page": "action-browser"
+      }
+    },
+    "2c3b22e1d518a1358134286ab2ef4461cea17f4f": {
+      "workers": {
+        "app/admin/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cadmin.ts%22%2C%5B%22updateRequestItem%22%2C%22getRequests%22%2C%22updateRequestStatus%22%2C%22getRequestDetails%22%2C%22confirmRequest%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/admin/page": "action-browser"
+      }
+    },
+    "784c65380b43d8929682d5c77c4889622747b8aa": {
+      "workers": {
+        "app/admin/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cadmin.ts%22%2C%5B%22updateRequestItem%22%2C%22getRequests%22%2C%22updateRequestStatus%22%2C%22getRequestDetails%22%2C%22confirmRequest%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/admin/page": "action-browser"
+      }
+    },
+    "ced944e75a6486f4318cfa87cfbc7eaabde4de6d": {
+      "workers": {
+        "app/admin/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cadmin.ts%22%2C%5B%22updateRequestItem%22%2C%22getRequests%22%2C%22updateRequestStatus%22%2C%22getRequestDetails%22%2C%22confirmRequest%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/admin/page": "action-browser"
+      }
+    },
+    "dcaefd51ce19fc8a3d2e993be1d9188eee3756a6": {
+      "workers": {
+        "app/admin/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cadmin.ts%22%2C%5B%22updateRequestItem%22%2C%22getRequests%22%2C%22updateRequestStatus%22%2C%22getRequestDetails%22%2C%22confirmRequest%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/admin/page": "action-browser"
+      }
+    },
+    "18668d6fbf1afd38cc0f48651b01403870186ad9": {
+      "workers": {
+        "app/login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cauth.ts%22%2C%5B%22signIn%22%2C%22signOut%22%2C%22signUp%22%2C%22getCurrentUser%22%5D%5D%5D&__client_imported__=true!",
+        "app/mypage/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cauth.ts%22%2C%5B%22signIn%22%2C%22signOut%22%2C%22signUp%22%2C%22getCurrentUser%22%5D%5D%2C%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Corder.ts%22%2C%5B%22confirmOrder%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/login/page": "action-browser",
+        "app/mypage/page": "action-browser"
+      }
+    },
+    "5403a6c31ec374067d6f52b357c8e3ace4130da6": {
+      "workers": {
+        "app/login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cauth.ts%22%2C%5B%22signIn%22%2C%22signOut%22%2C%22signUp%22%2C%22getCurrentUser%22%5D%5D%5D&__client_imported__=true!",
+        "app/mypage/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cauth.ts%22%2C%5B%22signIn%22%2C%22signOut%22%2C%22signUp%22%2C%22getCurrentUser%22%5D%5D%2C%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Corder.ts%22%2C%5B%22confirmOrder%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/login/page": "action-browser",
+        "app/mypage/page": "action-browser"
+      }
+    },
+    "be178be957ddb7bf31e2808ebebf6994cb486766": {
+      "workers": {
+        "app/login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cauth.ts%22%2C%5B%22signIn%22%2C%22signOut%22%2C%22signUp%22%2C%22getCurrentUser%22%5D%5D%5D&__client_imported__=true!",
+        "app/mypage/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cauth.ts%22%2C%5B%22signIn%22%2C%22signOut%22%2C%22signUp%22%2C%22getCurrentUser%22%5D%5D%2C%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Corder.ts%22%2C%5B%22confirmOrder%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/login/page": "action-browser",
+        "app/mypage/page": "action-browser"
+      }
+    },
+    "e8dc4b3499cd1ee8ecae1300057c264e93087195": {
+      "workers": {
+        "app/login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cauth.ts%22%2C%5B%22signIn%22%2C%22signOut%22%2C%22signUp%22%2C%22getCurrentUser%22%5D%5D%5D&__client_imported__=true!",
+        "app/mypage/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cauth.ts%22%2C%5B%22signIn%22%2C%22signOut%22%2C%22signUp%22%2C%22getCurrentUser%22%5D%5D%2C%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Corder.ts%22%2C%5B%22confirmOrder%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/login/page": "action-browser",
+        "app/mypage/page": "action-browser"
+      }
+    },
+    "d6c8158fc3254f6b547a13ab88bae99585d45457": {
+      "workers": {
+        "app/mypage/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cauth.ts%22%2C%5B%22signIn%22%2C%22signOut%22%2C%22signUp%22%2C%22getCurrentUser%22%5D%5D%2C%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Corder.ts%22%2C%5B%22confirmOrder%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/mypage/page": "action-browser"
+      }
+    },
+    "9be9a230d7e4de092690d668b6b75fd0a5dab217": {
+      "workers": {
+        "app/dev/setup/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cdev.ts%22%2C%5B%22createTestUsers%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/dev/setup/page": "action-browser"
+      }
+    },
+    "0a671b1475840e247a5e24f2dc1978e6accce906": {
+      "workers": {
+        "app/partner/page": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cpartner.ts%22%2C%5B%22updateLocalShipping%22%2C%22getBatches%22%2C%22getBatchDetails%22%5D%5D%5D&__client_imported__=!"
+      },
+      "layer": {
+        "app/partner/page": "rsc"
+      }
+    },
+    "6eb08300bc778f13f8a1f547706f7619b2355b4c": {
+      "workers": {
+        "app/partner/page": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cpartner.ts%22%2C%5B%22updateLocalShipping%22%2C%22getBatches%22%2C%22getBatchDetails%22%5D%5D%5D&__client_imported__=!"
+      },
+      "layer": {
+        "app/partner/page": "rsc"
+      }
+    },
+    "cf100f274fad17b082cf383f899d00e8c36d3c3c": {
+      "workers": {
+        "app/partner/page": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22F%3A%5C%5Ccursor%5C%5Ckorea-shopping%5C%5Capp%5C%5Cactions%5C%5Cpartner.ts%22%2C%5B%22updateLocalShipping%22%2C%22getBatches%22%2C%22getBatchDetails%22%5D%5D%5D&__client_imported__=!"
+      },
+      "layer": {
+        "app/partner/page": "rsc"
+      }
+    }
+  },
+  "edge": {},
+  "encryptionKey": "6tDWMfM9E7NG4tW5I3jp0VsDyGgKCuQsjU4E0+wHZ5U="
+}
