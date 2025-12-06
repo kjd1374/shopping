@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getRequests, createShipmentBatch, assignRequestsToBatch } from '../actions/admin'
+import { signOut } from '../actions/auth'
+import { toast } from 'sonner'
 
 interface Request {
   id: string
@@ -89,6 +91,24 @@ export default function AdminDashboard() {
     }
   }
 
+
+  const handleLogout = async () => {
+    if (!confirm('정말 로그아웃 하시겠습니까?')) return
+
+    try {
+      const result = await signOut()
+      if (result.success) {
+        toast.success('로그아웃 되었습니다.')
+        router.push('/')
+      } else {
+        toast.error('로그아웃 실패')
+      }
+    } catch (error) {
+      console.error('Logout error:', error)
+      toast.error('로그아웃 중 오류가 발생했습니다.')
+    }
+  }
+
   const getStatusBadge = (status: string) => {
     const styles = {
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
@@ -136,12 +156,12 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* 헤더 */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-black text-slate-900 mb-2">관리자 대시보드</h1>
             <p className="text-sm text-slate-500">고객 요청 관리</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <a
               href="/admin/users"
               className="text-xs font-bold text-slate-700 bg-white border border-slate-300 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
@@ -160,6 +180,13 @@ export default function AdminDashboard() {
             >
               🔧 DB 마이그레이션
             </a>
+            <div className="w-px h-6 bg-slate-300 mx-1 hidden md:block"></div>
+            <button
+              onClick={handleLogout}
+              className="text-xs font-bold text-red-700 bg-red-100 px-3 py-2 rounded-lg hover:bg-red-200 transition-colors flex items-center gap-1"
+            >
+              🚪 로그아웃
+            </button>
           </div>
         </div>
 

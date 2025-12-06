@@ -5,12 +5,27 @@ import { useState } from 'react'
 export default function MigratePage() {
   const [copied, setCopied] = useState(false)
 
-  const sql = `ALTER TABLE public.request_items
+  const sql = `-- 1. 배송 배치 테이블 생성
+CREATE TABLE IF NOT EXISTS public.shipment_batches (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  batch_name text,
+  tracking_no text,
+  status text DEFAULT 'shipped',
+  created_at timestamptz DEFAULT now()
+);
+
+-- 2. 요청 테이블에 컬럼 추가 (배치ID, 현지송장번호)
+ALTER TABLE public.requests
+ADD COLUMN IF NOT EXISTS batch_id uuid REFERENCES public.shipment_batches(id),
+ADD COLUMN IF NOT EXISTS local_tracking_no text;
+
+-- 3. 기존 마이그레이션 (아이템 테이블)
+ALTER TABLE public.request_items
 ADD COLUMN IF NOT EXISTS admin_capacity text null,
 ADD COLUMN IF NOT EXISTS admin_color text null,
 ADD COLUMN IF NOT EXISTS admin_etc text null,
 ADD COLUMN IF NOT EXISTS admin_rerequest_note text null,
-ADD COLUMN IF NOT EXISTS user_selected_options jsonb null;`
+ADD COLUMN IF NOT EXISTS user_selected_options jsonb null;\`
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(sql)
@@ -59,12 +74,27 @@ ADD COLUMN IF NOT EXISTS user_selected_options jsonb null;`
               </button>
             </div>
             <pre className="text-green-400 text-sm font-mono overflow-x-auto whitespace-pre-wrap">
-{`ALTER TABLE public.request_items
+              {`-- 1. 배송 배치 테이블 생성
+CREATE TABLE IF NOT EXISTS public.shipment_batches(
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    batch_name text,
+    tracking_no text,
+    status text DEFAULT 'shipped',
+    created_at timestamptz DEFAULT now()
+  );
+
+  --2. 요청 테이블에 컬럼 추가(배치ID, 현지송장번호)
+ALTER TABLE public.requests
+ADD COLUMN IF NOT EXISTS batch_id uuid REFERENCES public.shipment_batches(id),
+    ADD COLUMN IF NOT EXISTS local_tracking_no text;
+
+  --3. 기존 마이그레이션(아이템 테이블)
+ALTER TABLE public.request_items
 ADD COLUMN IF NOT EXISTS admin_capacity text null,
-ADD COLUMN IF NOT EXISTS admin_color text null,
-ADD COLUMN IF NOT EXISTS admin_etc text null,
-ADD COLUMN IF NOT EXISTS admin_rerequest_note text null,
-ADD COLUMN IF NOT EXISTS user_selected_options jsonb null;`}
+    ADD COLUMN IF NOT EXISTS admin_color text null,
+      ADD COLUMN IF NOT EXISTS admin_etc text null,
+        ADD COLUMN IF NOT EXISTS admin_rerequest_note text null,
+          ADD COLUMN IF NOT EXISTS user_selected_options jsonb null; `}
             </pre>
           </div>
 

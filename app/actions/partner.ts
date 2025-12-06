@@ -1,9 +1,10 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { supabase } from '../lib/supabase'
+import { createClient } from '@/app/lib/supabase/server'
 
 export async function getBatches() {
+    const supabase = createClient()
     const { data, error } = await supabase
         .from('shipment_batches')
         .select('*')
@@ -17,8 +18,25 @@ export async function getBatches() {
     return data
 }
 
+export async function getBatchInfo(batchId: string) {
+    const supabase = createClient()
+    const { data, error } = await supabase
+        .from('shipment_batches')
+        .select('*')
+        .eq('id', batchId)
+        .single()
+
+    if (error) {
+        console.error('Error fetching batch info:', error)
+        return null
+    }
+
+    return data
+}
+
 export async function getBatchDetails(batchId: string) {
     // Fetch requests and their items
+    const supabase = createClient()
     const { data, error } = await supabase
         .from('requests')
         .select(`
@@ -47,6 +65,7 @@ export async function getBatchDetails(batchId: string) {
 export async function updateLocalShipping(requestId: string, batchId: string, trackingNo: string) {
     if (!trackingNo) return;
 
+    const supabase = createClient()
     const { error } = await supabase
         .from('requests')
         .update({

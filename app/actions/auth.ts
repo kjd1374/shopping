@@ -36,7 +36,32 @@ export async function signUp(email: string, password: string) {
   }
 
   if (data.user) {
-    return { success: true, message: '회원가입이 완료되었습니다. 로그인해주세요.' }
+    // 1. 프로필 생성 (트리거가 실패할 경우를 대비해 수동 생성)
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: data.user.id,
+        email: email,
+        role: 'user', // 기본 권한
+      })
+
+    if (profileError) {
+      console.error('Profile creation error:', profileError)
+      // 프로필 생성 실패해도 로그인은 시도
+    }
+
+    // 2. 자동 로그인
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (signInError) {
+      return { success: true, message: '회원가입 완료. 로그인해주세요.' }
+    }
+
+    revalidatePath('/', 'layout')
+    return { success: true, message: '회원가입 및 로그인 완료' }
   }
 
   return { success: false, error: '회원가입에 실패했습니다.' }

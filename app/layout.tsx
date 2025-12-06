@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { LanguageProvider } from './contexts/LanguageContext'
+import { Toaster } from 'sonner'
 
 export const metadata: Metadata = {
   title: 'Vina-K - 베트남 역직구 서비스',
@@ -17,6 +18,7 @@ export default function RootLayout({
       <body>
         <LanguageProvider>
           {children}
+          <Toaster position="top-center" richColors />
         </LanguageProvider>
       </body>
     </html>
