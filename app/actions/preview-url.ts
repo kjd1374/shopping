@@ -1,6 +1,6 @@
 'use server'
 
-import puppeteer from 'puppeteer'
+import puppeteer, { Browser } from 'puppeteer'
 import * as cheerio from 'cheerio'
 
 export interface PreviewResult {
@@ -19,12 +19,12 @@ export async function getUrlPreview(url: string): Promise<PreviewResult> {
     return { url, title: '', images: [], error: '유효한 URL이 아닙니다.' }
   }
 
-  let browser: puppeteer.Browser | null = null
+  let browser: Browser | null = null
 
   try {
-    browser = await puppeteer.launch({ headless: 'new' })
+    browser = await puppeteer.launch({ headless: true })
     const page = await browser.newPage()
-    
+
     // 헤더 강화
     await page.setUserAgent(USER_AGENT)
     await page.setExtraHTTPHeaders({
@@ -61,11 +61,11 @@ export async function getUrlPreview(url: string): Promise<PreviewResult> {
     const $ = cheerio.load(html)
 
     // 1. 제목 추출
-    const title = 
-      $('meta[property="og:title"]').attr('content') || 
-      $('title').text() || 
+    const title =
+      $('meta[property="og:title"]').attr('content') ||
+      $('title').text() ||
       '제목 없음'
-      
+
     // 2. 이미지 수집
     const imageSet = new Set<string>()
 
@@ -80,14 +80,14 @@ export async function getUrlPreview(url: string): Promise<PreviewResult> {
         // 상대경로 처리
         if (src.startsWith('//')) src = 'https:' + src
         if (src.startsWith('/')) src = new URL(src, url).href
-        
+
         if (src.startsWith('http')) {
           // 크기 필터링 (속성값 기준)
           const w = $(el).attr('width')
           const h = $(el).attr('height')
           if (w && Number(w) < 100) return
           if (h && Number(h) < 100) return
-          
+
           imageSet.add(src)
         }
       }
@@ -115,7 +115,7 @@ export async function getUrlPreview(url: string): Promise<PreviewResult> {
     }
   } finally {
     if (browser) {
-      await browser.close().catch(() => {})
+      await browser.close().catch(() => { })
     }
   }
 }

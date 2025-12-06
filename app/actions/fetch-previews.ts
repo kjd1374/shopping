@@ -1,6 +1,6 @@
 'use server'
 
-import puppeteer from 'puppeteer'
+import puppeteer, { Browser, Page } from 'puppeteer'
 import * as cheerio from 'cheerio'
 
 export interface ProductPreview {
@@ -16,24 +16,24 @@ const USER_AGENT =
 export async function fetchProductPreviews(urls: string[]): Promise<ProductPreview[]> {
   // 유효한 URL만 필터링
   const targetUrls = urls.filter((url) => url && /^https?:\/\//i.test(url))
-  
+
   if (targetUrls.length === 0) return []
 
-  let browser: puppeteer.Browser | null = null
+  let browser: Browser | null = null
 
   try {
     // 브라우저 인스턴스 하나만 생성
-    browser = await puppeteer.launch({ headless: 'new' })
-    
+    browser = await puppeteer.launch({ headless: true })
+
     // 병렬 처리를 위해 모든 페이지 작업을 Promise 배열로 생성
     const tasks = targetUrls.map(async (url) => {
-      let page: puppeteer.Page | null = null
+      let page: Page | null = null
       try {
         if (!browser) throw new Error('Browser not initialized')
-        
+
         page = await browser.newPage()
         await page.setUserAgent(USER_AGENT)
-        
+
         // 리소스 로딩 최소화 (이미지, 폰트 등 차단하여 속도 향상)
         await page.setRequestInterception(true)
         page.on('request', (req) => {
@@ -47,10 +47,10 @@ export async function fetchProductPreviews(urls: string[]): Promise<ProductPrevi
 
         // 타임아웃 짧게 설정 (빠른 응답을 위해)
         await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 })
-        
+
         const html = await page.content()
         const $ = cheerio.load(html)
-        
+
         const title = $('meta[property="og:title"]').attr('content') || $('title').text() || '제목 없음'
         const image = $('meta[property="og:image"]').attr('content') || ''
 
@@ -68,7 +68,7 @@ export async function fetchProductPreviews(urls: string[]): Promise<ProductPrevi
           error: '정보를 가져올 수 없습니다.',
         }
       } finally {
-        if (page) await page.close().catch(() => {})
+        if (page) await page.close().catch(() => { })
       }
     })
 
@@ -80,7 +80,7 @@ export async function fetchProductPreviews(urls: string[]): Promise<ProductPrevi
     console.error('Puppeteer error:', error)
     return targetUrls.map(url => ({ url, title: '에러 발생', image: '', error: '브라우저 실행 실패' }))
   } finally {
-    if (browser) await browser.close().catch(() => {})
+    if (browser) await browser.close().catch(() => { })
   }
 }
 

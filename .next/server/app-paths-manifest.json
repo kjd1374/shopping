@@ -1,9 +1,7 @@
 {
   "/page": "app/page.js",
-  "/admin/migrate/page": "app/admin/migrate/page.js",
-  "/login/page": "app/login/page.js",
-  "/mypage/page": "app/mypage/page.js",
   "/dev/setup/page": "app/dev/setup/page.js",
+  "/mypage/page": "app/mypage/page.js",
   "/partner/page": "app/partner/page.js",
   "/admin/page": "app/admin/page.js"
 }

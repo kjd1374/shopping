@@ -2,7 +2,7 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import * as cheerio from 'cheerio'
-import puppeteer from 'puppeteer'
+import puppeteer, { Browser, Page } from 'puppeteer'
 
 // 응답 타입 정의
 export interface ProductOption {
@@ -65,11 +65,11 @@ export async function parseOliveYoung(url: string): Promise<OliveYoungResult> {
     return { success: false, error: '유효한 URL을 입력해주세요.' }
   }
 
-  let browser: puppeteer.Browser | null = null
+  let browser: Browser | null = null
   let html = ''
 
   try {
-    browser = await puppeteer.launch({ headless: 'new' })
+    browser = await puppeteer.launch({ headless: true })
     const page = await browser.newPage()
     await page.setUserAgent(USER_AGENT)
 
@@ -92,7 +92,7 @@ export async function parseOliveYoung(url: string): Promise<OliveYoungResult> {
     return { success: false, error: '브라우저 실행 실패' }
   } finally {
     if (browser) {
-      await browser.close().catch(() => {})
+      await browser.close().catch(() => { })
     }
   }
 
