@@ -5,7 +5,45 @@ import { useState } from 'react'
 export default function MigratePage() {
   const [copied, setCopied] = useState(false)
 
-  const sql = `-- 1. 배송 배치 테이블 생성
+  const sql = \`-- 1. 프로필 테이블 생성
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id uuid REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+  email text,
+  role text DEFAULT 'user',
+  created_at timestamptz DEFAULT now()
+);
+
+-- 2. RLS 정책 설정 (선택사항, 필요시 활성화)
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public profiles are viewable by everyone" 
+ON public.profiles FOR SELECT 
+USING ( true );
+
+CREATE POLICY "Users can insert their own profile" 
+ON public.profiles FOR INSERT 
+WITH CHECK ( auth.uid() = id );
+
+CREATE POLICY "Users can update own profile" 
+ON public.profiles FOR UPDATE 
+USING ( auth.uid() = id );
+
+-- 3. 새 유저 가입 시 프로필 자동 생성 트리거
+CREATE OR REPLACE FUNCTION public.handle_new_user() 
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, role)
+  VALUES (new.id, new.email, 'user');
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- 4. 배송 배치 테이블 생성
 CREATE TABLE IF NOT EXISTS public.shipment_batches (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   batch_name text,
@@ -14,12 +52,12 @@ CREATE TABLE IF NOT EXISTS public.shipment_batches (
   created_at timestamptz DEFAULT now()
 );
 
--- 2. 요청 테이블에 컬럼 추가 (배치ID, 현지송장번호)
+-- 5. 요청 테이블에 컬럼 추가 (배치ID, 현지송장번호)
 ALTER TABLE public.requests
 ADD COLUMN IF NOT EXISTS batch_id uuid REFERENCES public.shipment_batches(id),
 ADD COLUMN IF NOT EXISTS local_tracking_no text;
 
--- 3. 기존 마이그레이션 (아이템 테이블)
+-- 6. 기존 마이그레이션 (아이템 테이블)
 ALTER TABLE public.request_items
 ADD COLUMN IF NOT EXISTS admin_capacity text null,
 ADD COLUMN IF NOT EXISTS admin_color text null,
@@ -45,27 +83,16 @@ ADD COLUMN IF NOT EXISTS user_selected_options jsonb null;\`
               ← 관리자 페이지로
             </a>
             <h1 className="text-2xl font-black text-slate-900 mb-2">
-              데이터베이스 마이그레이션
+              데이터베이스 마이그레이션 (Updated)
             </h1>
             <p className="text-sm text-slate-500">
-              컬럼 추가만 실행하면 됩니다 (테이블 생성 불필요)
+              아래 SQL을 실행하면 누락된 테이블(profiles)이 생성됩니다.
             </p>
-          </div>
-
-          <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-red-800 font-bold mb-2">
-              ⚠️ 주의사항
-            </p>
-            <ul className="text-sm text-red-700 space-y-1 list-disc list-inside">
-              <li><code className="bg-red-100 px-1 rounded">CREATE TABLE</code> 쿼리는 실행하지 마세요!</li>
-              <li>아래 <code className="bg-red-100 px-1 rounded">ALTER TABLE</code> 쿼리만 실행하세요.</li>
-              <li>이미 테이블이 존재하므로 컬럼만 추가하면 됩니다.</li>
-            </ul>
           </div>
 
           <div className="bg-slate-900 rounded-lg p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white font-bold text-sm">실행할 SQL (이것만 실행하세요!)</h2>
+              <h2 className="text-white font-bold text-sm">실행할 SQL (복사 후 실행하세요)</h2>
               <button
                 onClick={copyToClipboard}
                 className="text-xs text-slate-300 hover:text-white px-3 py-1.5 bg-slate-800 rounded transition-colors flex items-center gap-2"
@@ -74,27 +101,7 @@ ADD COLUMN IF NOT EXISTS user_selected_options jsonb null;\`
               </button>
             </div>
             <pre className="text-green-400 text-sm font-mono overflow-x-auto whitespace-pre-wrap">
-              {`-- 1. 배송 배치 테이블 생성
-CREATE TABLE IF NOT EXISTS public.shipment_batches(
-    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    batch_name text,
-    tracking_no text,
-    status text DEFAULT 'shipped',
-    created_at timestamptz DEFAULT now()
-  );
-
-  --2. 요청 테이블에 컬럼 추가(배치ID, 현지송장번호)
-ALTER TABLE public.requests
-ADD COLUMN IF NOT EXISTS batch_id uuid REFERENCES public.shipment_batches(id),
-    ADD COLUMN IF NOT EXISTS local_tracking_no text;
-
-  --3. 기존 마이그레이션(아이템 테이블)
-ALTER TABLE public.request_items
-ADD COLUMN IF NOT EXISTS admin_capacity text null,
-    ADD COLUMN IF NOT EXISTS admin_color text null,
-      ADD COLUMN IF NOT EXISTS admin_etc text null,
-        ADD COLUMN IF NOT EXISTS admin_rerequest_note text null,
-          ADD COLUMN IF NOT EXISTS user_selected_options jsonb null; `}
+              {sql}
             </pre>
           </div>
 
@@ -124,7 +131,7 @@ ADD COLUMN IF NOT EXISTS admin_capacity text null,
               href="/admin"
               className="flex-1 md:flex-none px-6 py-3 bg-slate-100 text-slate-700 font-bold rounded-lg hover:bg-slate-200 transition-colors text-center"
             >
-              관리자 페이지로
+              취소
             </a>
             <a
               href="https://supabase.com/dashboard/project/hgxblbbjlnsfkffwvfao/sql/new"
