@@ -228,3 +228,30 @@ export async function updateUserRole(userId: string, newRole: 'user' | 'partner'
     return { success: false, error: error.message }
   }
 }
+// 요청 삭제 (여러 개)
+export async function deleteRequests(requestIds: string[]) {
+  try {
+    const supabase = createClient()
+
+    // 1. 관련된 아이템 먼저 삭제 (Cascade 설정이 없다고 가정하고 안전하게)
+    const { error: itemsError } = await supabase
+      .from('request_items')
+      .delete()
+      .in('request_id', requestIds)
+
+    if (itemsError) throw itemsError
+
+    // 2. 요청 삭제
+    const { error: requestsError } = await supabase
+      .from('requests')
+      .delete()
+      .in('id', requestIds)
+
+    if (requestsError) throw requestsError
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('Delete requests error:', error)
+    return { success: false, error: error.message }
+  }
+}

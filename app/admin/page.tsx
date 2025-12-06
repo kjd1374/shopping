@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getRequests, createShipmentBatch, assignRequestsToBatch } from '../actions/admin'
+import { getRequests, createShipmentBatch, assignRequestsToBatch, deleteRequests } from '../actions/admin'
 import { signOut } from '../actions/auth'
 import { toast } from 'sonner'
 
@@ -78,7 +78,7 @@ export default function AdminDashboard() {
         throw new Error(assignResult.error || '요청 할당 실패')
       }
 
-      alert('배송 배치가 생성되었습니다!')
+      toast.success('배송 배치가 생성되었습니다!')
       setIsCreatingBatch(false)
       setSelectedIds(new Set())
       setNewBatchName('')
@@ -87,7 +87,25 @@ export default function AdminDashboard() {
       router.push('/admin/batches')
 
     } catch (error: any) {
-      alert('오류 발생: ' + error.message)
+      toast.error('오류 발생: ' + error.message)
+    }
+  }
+
+  const handleDelete = async (ids: string[]) => {
+    if (ids.length === 0) return
+    if (!confirm('정말 삭제하시겠습니까? 삭제된 데이터는 복구할 수 없습니다.')) return
+
+    try {
+      const result = await deleteRequests(ids)
+      if (result.success) {
+        toast.success(`삭제되었습니다. (${ids.length}건)`)
+        setSelectedIds(new Set())
+        fetchRequests()
+      } else {
+        toast.error('삭제 실패: ' + result.error)
+      }
+    } catch (error: any) {
+      toast.error('오류 발생: ' + error.message)
     }
   }
 
@@ -234,6 +252,12 @@ export default function AdminDashboard() {
               )}
             </div>
             <button
+              onClick={() => handleDelete(Array.from(selectedIds))}
+              className="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-700 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              🗑️ 선택 삭제
+            </button>
+            <button
               onClick={() => setSelectedIds(new Set())}
               className="text-xs text-slate-500 hover:text-slate-800"
             >
@@ -319,6 +343,15 @@ export default function AdminDashboard() {
                           className="text-xs font-bold bg-slate-900 text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 active:scale-95 transition-all"
                         >
                           상세보기
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDelete([request.id])
+                          }}
+                          className="text-xs font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-100 active:scale-95 transition-all ml-2"
+                        >
+                          삭제
                         </button>
                       </td>
                     </tr>
