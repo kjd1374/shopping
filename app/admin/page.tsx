@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getRequests } from '../actions/admin'
+import { getRequests, createShipmentBatch, assignRequestsToBatch } from '../actions/admin'
 
 interface Request {
   id: string
@@ -15,6 +15,11 @@ interface Request {
 export default function AdminDashboard() {
   const [requests, setRequests] = useState<Request[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [isCreatingBatch, setIsCreatingBatch] = useState(false)
+  const [newBatchName, setNewBatchName] = useState('')
+  const [newTrackingNo, setNewTrackingNo] = useState('')
+
   const router = useRouter()
 
   const fetchRequests = async () => {
@@ -36,6 +41,53 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchRequests()
   }, [])
+
+  const toggleSelection = (id: string) => {
+    const newSelected = new Set(selectedIds)
+    if (newSelected.has(id)) {
+      newSelected.delete(id)
+    } else {
+      newSelected.add(id)
+    }
+    setSelectedIds(newSelected)
+  }
+
+  const handleCreateBatch = async () => {
+    if (selectedIds.size === 0) return
+    if (!newBatchName || !newTrackingNo) {
+      alert('배치명과 송장번호를 입력해주세요.')
+      return
+    }
+
+    try {
+      // 1. 배치 생성
+      const batchResult = await createShipmentBatch(newBatchName, newTrackingNo)
+      if (!batchResult.success || !batchResult.data) {
+        throw new Error(batchResult.error || '배치 생성 실패')
+      }
+
+      // 2. 요청 할당
+      const assignResult = await assignRequestsToBatch(
+        batchResult.data.id,
+        Array.from(selectedIds)
+      )
+
+      if (!assignResult.success) {
+        throw new Error(assignResult.error || '요청 할당 실패')
+      }
+
+      alert('배송 배치가 생성되었습니다!')
+      setIsCreatingBatch(false)
+      setSelectedIds(new Set())
+      setNewBatchName('')
+      setNewTrackingNo('')
+      fetchRequests()
+      router.push('/admin/batches')
+
+    } catch (error: any) {
+      alert('오류 발생: ' + error.message)
+    }
+  }
 
   const getStatusBadge = (status: string) => {
     const styles = {
@@ -89,13 +141,73 @@ export default function AdminDashboard() {
             <h1 className="text-2xl font-black text-slate-900 mb-2">관리자 대시보드</h1>
             <p className="text-sm text-slate-500">고객 요청 관리</p>
           </div>
-          <a
-            href="/admin/migrate"
-            className="text-xs font-bold text-yellow-700 bg-yellow-100 px-3 py-2 rounded-lg hover:bg-yellow-200 transition-colors"
-          >
-            🔧 DB 마이그레이션
-          </a>
+          <div className="flex gap-2">
+            <a
+              href="/admin/batches"
+              className="text-xs font-bold text-slate-700 bg-white border border-slate-300 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              📦 배송 배치 관리
+            </a>
+            <a
+              href="/admin/migrate"
+              className="text-xs font-bold text-yellow-700 bg-yellow-100 px-3 py-2 rounded-lg hover:bg-yellow-200 transition-colors"
+            >
+              🔧 DB 마이그레이션
+            </a>
+          </div>
         </div>
+
+        {/* 액션 바 (선택 시 표시) */}
+        {selectedIds.size > 0 && (
+          <div className="mb-4 bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-center justify-between animate-fade-in">
+            <div className="flex items-center gap-4">
+              <span className="font-bold text-indigo-900">{selectedIds.size}개 선택됨</span>
+              {isCreatingBatch ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="배치명 (예: 12/06 1차)"
+                    className="px-3 py-1.5 text-sm border rounded"
+                    value={newBatchName}
+                    onChange={e => setNewBatchName(e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    placeholder="송장번호"
+                    className="px-3 py-1.5 text-sm border rounded"
+                    value={newTrackingNo}
+                    onChange={e => setNewTrackingNo(e.target.value)}
+                  />
+                  <button
+                    onClick={handleCreateBatch}
+                    className="px-3 py-1.5 bg-indigo-600 text-white text-sm font-bold rounded hover:bg-indigo-700"
+                  >
+                    확인
+                  </button>
+                  <button
+                    onClick={() => setIsCreatingBatch(false)}
+                    className="px-3 py-1.5 bg-white text-slate-600 text-sm font-bold rounded hover:bg-slate-50"
+                  >
+                    취소
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsCreatingBatch(true)}
+                  className="px-4 py-2 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                  📦 선택한 항목 배송처리 (배치 생성)
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setSelectedIds(new Set())}
+              className="text-xs text-slate-500 hover:text-slate-800"
+            >
+              선택 해제
+            </button>
+          </div>
+        )}
 
         {/* 테이블 */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -103,6 +215,20 @@ export default function AdminDashboard() {
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
+                  <th className="px-4 py-3 w-10">
+                    <input
+                      type="checkbox"
+                      className="rounded border-slate-300"
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedIds(new Set(requests.map(r => r.id)))
+                        } else {
+                          setSelectedIds(new Set())
+                        }
+                      }}
+                      checked={requests.length > 0 && selectedIds.size === requests.length}
+                    />
+                  </th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                     요청일시
                   </th>
@@ -123,13 +249,21 @@ export default function AdminDashboard() {
               <tbody className="divide-y divide-slate-200">
                 {requests.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-slate-400 text-sm">
+                    <td colSpan={6} className="px-4 py-8 text-center text-slate-400 text-sm">
                       요청이 없습니다.
                     </td>
                   </tr>
                 ) : (
                   requests.map((request) => (
                     <tr key={request.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          className="rounded border-slate-300"
+                          checked={selectedIds.has(request.id)}
+                          onChange={() => toggleSelection(request.id)}
+                        />
+                      </td>
                       <td className="px-4 py-3 text-sm text-slate-900 whitespace-nowrap">
                         {formatDate(request.created_at)}
                       </td>

@@ -135,3 +135,62 @@ export async function updateRequestStatus(requestId: string, status: 'pending' |
     return { success: false, error: error.message || 'Failed to update status' }
   }
 }
+
+// 배송 배치 목록 조회
+export async function getShipmentBatches() {
+  try {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('shipment_batches')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return { success: true, data }
+  } catch (error: any) {
+    console.error('Get batches error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+// 배송 배치 생성
+export async function createShipmentBatch(name: string, trackingNo: string) {
+  try {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from('shipment_batches')
+      .insert({
+        batch_name: name,
+        tracking_no: trackingNo,
+        status: 'shipped'
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return { success: true, data }
+  } catch (error: any) {
+    console.error('Create batch error:', error)
+    return { success: false, error: error.message }
+  }
+}
+
+// 요청을 배치에 할당
+export async function assignRequestsToBatch(batchId: string, requestIds: string[]) {
+  try {
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('requests')
+      .update({
+        batch_id: batchId,
+        status: 'ordered'
+      })
+      .in('id', requestIds)
+
+    if (error) throw error
+    return { success: true }
+  } catch (error: any) {
+    console.error('Assign batch error:', error)
+    return { success: false, error: error.message }
+  }
+}
