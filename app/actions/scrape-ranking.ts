@@ -1,25 +1,23 @@
 'use server'
 
-import puppeteer from 'puppeteer'
 import * as cheerio from 'cheerio'
 import { createClient } from '@/app/lib/supabase/server'
+import { Browser } from 'puppeteer-core'
+import { getBrowser } from '../lib/puppeteer'
 
 const RANKING_URL = 'https://www.oliveyoung.co.kr/store/main/getBestList.do'
 const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
 
 export async function scrapeOliveYoungRanking() {
-  let browser: puppeteer.Browser | null = null
+  let browser: Browser | null = null
 
   try {
     console.log('🚀 랭킹 크롤링 시작...')
-    
-    // Puppeteer 실행 옵션: headless: "new" 사용
-    browser = await puppeteer.launch({ 
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    })
-    
+
+    // Puppeteer 실행
+    browser = await getBrowser()
+
     const page = await browser.newPage()
     await page.setUserAgent(USER_AGENT)
 
@@ -41,33 +39,33 @@ export async function scrapeOliveYoungRanking() {
 
     // 랭킹 리스트 순회
     $('.cate_prd_list li').each((idx, el) => {
-      if (idx >= 10) return 
+      if (idx >= 10) return
 
       const $el = $(el)
       const rank = idx + 1
       const brand = $el.find('.tx_brand').text().trim()
       const title = $el.find('.tx_name').text().trim()
-      
+
       const imgTag = $el.find('img')
       let image = imgTag.attr('data-original') || imgTag.attr('src') || ''
       let originUrl = $el.find('a').attr('href') || ''
 
       // URL 정규화
       if (originUrl && !originUrl.startsWith('http')) {
-         if (originUrl.startsWith('/')) {
-             originUrl = `https://www.oliveyoung.co.kr${originUrl}`
-         } else if (originUrl.includes('javascript:')) {
-             const match = originUrl.match(/'([^']+)'/)
-             if (match) {
-                 originUrl = `https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=${match[1]}`
-             }
-         }
+        if (originUrl.startsWith('/')) {
+          originUrl = `https://www.oliveyoung.co.kr${originUrl}`
+        } else if (originUrl.includes('javascript:')) {
+          const match = originUrl.match(/'([^']+)'/)
+          if (match) {
+            originUrl = `https://www.oliveyoung.co.kr/store/goods/getGoodsDetail.do?goodsNo=${match[1]}`
+          }
+        }
       }
 
       // 이미지 URL 정규화
       if (image && !image.startsWith('http')) {
         if (image.startsWith('//')) {
-            image = `https:${image}`
+          image = `https:${image}`
         }
       }
 
@@ -100,10 +98,10 @@ export async function scrapeOliveYoungRanking() {
     if (error) {
       // upsert 실패 시 기존 방식 시도 (삭제 후 삽입)
       console.warn('Upsert 실패, 삭제 후 삽입 시도:', error.message)
-      
+
       await supabase.from('products').delete().eq('product_type', 'ranking_beauty')
       const { error: insertError } = await supabase.from('products').insert(products)
-      
+
       if (insertError) {
         throw new Error(`DB 저장 실패: ${insertError.message}`)
       }
@@ -116,6 +114,6 @@ export async function scrapeOliveYoungRanking() {
     console.error('Scraping error:', errorMessage)
     return { success: false, error: errorMessage }
   } finally {
-    if (browser) await browser.close().catch(() => {})
+    if (browser) await browser.close().catch(() => { })
   }
 }
