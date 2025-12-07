@@ -63,7 +63,32 @@ ADD COLUMN IF NOT EXISTS admin_capacity text null,
 ADD COLUMN IF NOT EXISTS admin_color text null,
 ADD COLUMN IF NOT EXISTS admin_etc text null,
 ADD COLUMN IF NOT EXISTS admin_rerequest_note text null,
-ADD COLUMN IF NOT EXISTS user_selected_options jsonb null;`
+ADD COLUMN IF NOT EXISTS user_selected_options jsonb null;
+
+-- 7. Legacy Tables RLS Security Fix (보안 경고 해결)
+-- 사용하지 않는 테이블들이지만 보안 경고 제거를 위해 RLS 활성화 및 잠금 처리
+
+-- Category
+ALTER TABLE IF EXISTS "Category" ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read access" ON "Category";
+CREATE POLICY "Public read access" ON "Category" FOR SELECT USING (true);
+
+-- CategoryOption
+ALTER TABLE IF EXISTS "CategoryOption" ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public read access" ON "CategoryOption";
+CREATE POLICY "Public read access" ON "CategoryOption" FOR SELECT USING (true);
+
+-- User (Legacy) - Lock down
+ALTER TABLE IF EXISTS "User" ENABLE ROW LEVEL SECURITY;
+-- No active policy means only service role can access
+
+-- Request (Legacy) - Lock down
+ALTER TABLE IF EXISTS "Request" ENABLE ROW LEVEL SECURITY;
+-- No active policy means only service role can access
+
+-- RequestOptionValue (Legacy) - Lock down
+ALTER TABLE IF EXISTS "RequestOptionValue" ENABLE ROW LEVEL SECURITY;
+-- No active policy means only service role can access`
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(sql)
