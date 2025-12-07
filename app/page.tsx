@@ -8,6 +8,7 @@ import RequestSection, { type RequestSectionRef } from './components/RequestSect
 import LanguageSwitcher from './components/LanguageSwitcher'
 import { useLanguage } from './contexts/LanguageContext'
 import { createClient } from './lib/supabase/client'
+import { signOut } from './actions/auth'
 
 interface Product {
   id: string
@@ -43,6 +44,12 @@ export default function Home() {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  const handleLogout = async () => {
+    await signOut()
+    setIsLoggedIn(false)
+    window.location.reload() // 상태 초기화를 위해 새로고침
+  }
 
   const checkAuth = async () => {
     const supabase = createClient()
@@ -140,6 +147,14 @@ export default function Home() {
             </button>
           )}
           <LanguageSwitcher />
+          {isLoggedIn && (
+            <button
+              onClick={handleLogout}
+              className="text-xs font-bold text-slate-500 hover:text-red-500 px-2 transition-colors whitespace-nowrap"
+            >
+              Log Out
+            </button>
+          )}
         </div>
       </header>
 
@@ -151,8 +166,8 @@ export default function Home() {
               key={tab}
               onClick={() => setCategory(tab)}
               className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${category === tab
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-600'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-400 hover:text-slate-600'
                 }`}
             >
               {tab === 'beauty' ? t('tab.beauty') : t('tab.fashion')}
