@@ -91,6 +91,10 @@ ALTER TABLE IF EXISTS "Request" ENABLE ROW LEVEL SECURITY;
 
 -- RequestOptionValue (Legacy) - Lock down
 ALTER TABLE IF EXISTS "RequestOptionValue" ENABLE ROW LEVEL SECURITY;
+-- No active policy means only service role can access
+
+-- Quotation (Legacy) - Lock down
+ALTER TABLE IF EXISTS "Quotation" ENABLE ROW LEVEL SECURITY;
 -- No active policy means only service role can access`
 
   const copyToClipboard = () => {
