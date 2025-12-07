@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '../lib/supabase/client'
 import { signOut } from '../actions/auth'
 import { confirmOrder } from '../actions/order'
+import LanguageSwitcher from '../components/LanguageSwitcher'
+import { useLanguage } from '../contexts/LanguageContext'
 
 interface RequestItem {
   id: string
@@ -17,6 +19,7 @@ interface RequestItem {
   admin_rerequest_note: string | null
   user_selected_options: Record<string, string> | null
   user_quantity: number
+  is_buyable: boolean
 }
 
 interface Request {
@@ -37,6 +40,7 @@ export default function MyPage() {
     quantity: number
   }>>({})
   const router = useRouter()
+  const { t } = useLanguage()
 
   useEffect(() => {
     loadData()
@@ -44,7 +48,7 @@ export default function MyPage() {
 
   const loadData = async () => {
     const supabase = createClient()
-    
+
     // 현재 사용자 확인
     const {
       data: { user: currentUser },
@@ -74,7 +78,8 @@ export default function MyPage() {
           admin_etc,
           admin_rerequest_note,
           user_selected_options,
-          user_quantity
+          user_quantity,
+          is_buyable
         )
       `)
       .eq('user_id', currentUser.id)
@@ -85,7 +90,7 @@ export default function MyPage() {
     } else {
       const requestsData = (data as Request[]) || []
       setRequests(requestsData)
-      
+
       // 초기 선택값 설정 (이미 선택된 값이 있으면 사용, 없으면 빈 값)
       const initialSelections: Record<string, {
         capacity?: string
@@ -93,7 +98,7 @@ export default function MyPage() {
         etc?: string
         quantity: number
       }> = {}
-      
+
       requestsData.forEach(request => {
         request.request_items.forEach(item => {
           if (item.user_selected_options) {
@@ -110,7 +115,7 @@ export default function MyPage() {
           }
         })
       })
-      
+
       setItemSelections(initialSelections)
     }
 
@@ -129,7 +134,6 @@ export default function MyPage() {
       [itemId]: {
         ...prev[itemId],
         [field]: value,
-        quantity: prev[itemId]?.quantity || 1,
       },
     }))
   }
@@ -161,7 +165,7 @@ export default function MyPage() {
     if (selection.etc) selectedOptions.etc = selection.etc
 
     const result = await confirmOrder(itemId, selectedOptions, selection.quantity)
-    
+
     if (result.success) {
       alert('구매 요청이 완료되었습니다!')
       loadData() // 데이터 새로고침
@@ -190,7 +194,7 @@ export default function MyPage() {
     const labels = {
       pending: '대기중',
       reviewed: '승인완료',
-      ordered: '주문완료',
+      ordered: '구매요청완료',
     }
     return (
       <span
@@ -225,26 +229,27 @@ export default function MyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
         {/* 헤더 */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 mb-2">내 요청함</h1>
+            <h1 className="text-2xl font-black text-slate-900 mb-1">내 요청함</h1>
             <p className="text-sm text-slate-500">
               {user?.email || '사용자'}
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <LanguageSwitcher />
             <button
               onClick={() => router.push('/')}
-              className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg hover:bg-slate-200 transition-colors"
+              className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg hover:bg-slate-200 transition-colors whitespace-nowrap"
             >
               메인으로
             </button>
             <button
               onClick={handleLogout}
-              className="text-xs font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
+              className="text-xs font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors whitespace-nowrap"
             >
               로그아웃
             </button>
@@ -288,6 +293,7 @@ export default function MyPage() {
                   {request.request_items.map((item) => {
                     const isReviewed = request.status === 'reviewed'
                     const hasRerequestNote = !!item.admin_rerequest_note
+                    const isBuyable = item.is_buyable !== false // Default true
                     const capacityOptions = parseOptions(item.admin_capacity)
                     const colorOptions = parseOptions(item.admin_color)
                     const etcOptions = parseOptions(item.admin_etc)
@@ -318,6 +324,14 @@ export default function MyPage() {
                           </div>
                         </div>
 
+                        {/* 구매 불가 안내 (승인 완료 상태에서) */}
+                        {!isBuyable && isReviewed && (
+                          <div className="mb-4 p-3 bg-slate-100 border-2 border-slate-200 rounded-lg">
+                            <p className="text-xs font-bold text-slate-600 mb-1">🚫 구매 불가</p>
+                            <p className="text-xs text-slate-500">관리자가 해당 상품을 구매할 수 없다고 표시했습니다.</p>
+                          </div>
+                        )}
+
                         {/* 재요청 안내 */}
                         {hasRerequestNote && (
                           <div className="mb-4 p-3 bg-red-50 border-2 border-red-200 rounded-lg">
@@ -327,7 +341,7 @@ export default function MyPage() {
                         )}
 
                         {/* 승인완료 상태일 때 옵션 선택 UI */}
-                        {isReviewed && !hasRerequestNote && (
+                        {isReviewed && !hasRerequestNote && isBuyable && (
                           <div className="space-y-4 mb-4">
                             {/* 용량 선택 */}
                             {capacityOptions.length > 0 && (
@@ -343,11 +357,10 @@ export default function MyPage() {
                                       <button
                                         key={option}
                                         onClick={() => handleOptionChange(item.id, 'capacity', option)}
-                                        className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all ${
-                                          itemSelections[item.id]?.capacity === option
+                                        className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all ${itemSelections[item.id]?.capacity === option
                                             ? 'bg-indigo-600 text-white border-indigo-600'
                                             : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400'
-                                        }`}
+                                          }`}
                                       >
                                         {option}
                                       </button>
@@ -371,11 +384,10 @@ export default function MyPage() {
                                       <button
                                         key={option}
                                         onClick={() => handleOptionChange(item.id, 'color', option)}
-                                        className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all ${
-                                          itemSelections[item.id]?.color === option
+                                        className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all ${itemSelections[item.id]?.color === option
                                             ? 'bg-indigo-600 text-white border-indigo-600'
                                             : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400'
-                                        }`}
+                                          }`}
                                       >
                                         {option}
                                       </button>
@@ -399,11 +411,10 @@ export default function MyPage() {
                                       <button
                                         key={option}
                                         onClick={() => handleOptionChange(item.id, 'etc', option)}
-                                        className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all ${
-                                          itemSelections[item.id]?.etc === option
+                                        className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all ${itemSelections[item.id]?.etc === option
                                             ? 'bg-indigo-600 text-white border-indigo-600'
                                             : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400'
-                                        }`}
+                                          }`}
                                       >
                                         {option}
                                       </button>
@@ -466,7 +477,7 @@ export default function MyPage() {
                         {/* 주문완료 상태일 때 */}
                         {request.status === 'ordered' && item.user_selected_options && (
                           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                            <p className="text-xs font-bold text-green-800 mb-2">✅ 주문 완료</p>
+                            <p className="text-xs font-bold text-green-800 mb-2">✅ 구매요청 완료</p> {/* Updated text from "주문 완료" to "구매요청 완료" as requested, though status is still 'ordered' internally */}
                             <div className="text-xs text-green-700 space-y-1">
                               {item.user_selected_options.capacity && (
                                 <p>용량: {item.user_selected_options.capacity}</p>
@@ -486,6 +497,9 @@ export default function MyPage() {
                             </div>
                           </div>
                         )}
+
+                        {/* If status is ordered but item was marked not buyable later (unlikely edge case but safe to handle) or no options selected yet but status moved?? */}
+                        {/* Actually if status is ordered, it means user confirmed it. So it must have been buyable at that time. */}
                       </div>
                     )
                   })}

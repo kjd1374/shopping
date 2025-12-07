@@ -97,6 +97,15 @@ ALTER TABLE IF EXISTS "RequestOptionValue" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS "Quotation" ENABLE ROW LEVEL SECURITY;
 -- No active policy means only service role can access
 
+-- _PartnerCategory (Legacy) - Lock down
+ALTER TABLE IF EXISTS "_PartnerCategory" ENABLE ROW LEVEL SECURITY;
+-- No active policy means only service role can access
+
+-- Shipment Batches (Security)
+ALTER TABLE IF EXISTS "shipment_batches" ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read access" ON "shipment_batches" FOR SELECT USING (true);
+CREATE POLICY "Admin write access" ON "shipment_batches" FOR ALL USING (auth.uid() IN (SELECT id FROM public.profiles WHERE role = 'admin'));
+
 -- 8. Sync Missing Profiles (누락된 프로필 생성)
 -- 이미 가입했지만 프로필이 없는 유저들을 위해 실행 (auth.users -> public.profiles)
 INSERT INTO public.profiles (id, email, role)

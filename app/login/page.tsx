@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn, signUp, signOut } from '../actions/auth'
 import { createClient } from '../lib/supabase/client'
+import { toast } from 'sonner'
+
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -23,6 +25,24 @@ export default function LoginPage() {
       data: { user },
     } = await supabase.auth.getUser()
     setIsLoggedIn(!!user)
+
+    if (user) {
+      // Check role and redirect if needed
+      checkRoleAndRedirect(user.id)
+    }
+  }
+
+  const checkRoleAndRedirect = async (userId: string) => {
+    const supabase = createClient()
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single()
+
+    if (profile?.role === 'admin') {
+      router.push('/admin')
+    }
   }
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -33,8 +53,33 @@ export default function LoginPage() {
     try {
       const result = await signIn(email, password)
       if (result?.success) {
-        alert('로그인 성공!')
-        router.push('/')
+        toast.success('로그인 성공!')
+
+        // Admin check logic implies we need to wait or verify role.
+        // For simpler UX, we can rely on middleware or client-side check.
+        // Let's do a quick client-side check or just refresh.
+
+        // We need to know who logged in to redirect correctly.
+        // signIn action sets cookie, so we can get user now.
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+
+          if (profile?.role === 'admin') {
+            router.push('/admin')
+          } else {
+            router.push('/')
+          }
+        } else {
+          router.push('/')
+        }
+
         router.refresh()
       } else {
         setError(result?.error || '로그인에 실패했습니다.')
@@ -54,9 +99,31 @@ export default function LoginPage() {
     try {
       const result = await signUp(email, password)
       if (result?.success) {
-        alert(result.message || '회원가입이 완료되었습니다. 로그인해주세요.')
-        // 회원가입 후 로그인 페이지에 머물기 (자동 로그인 안 함)
-        setLoading(false)
+        // Auto-login is handled inside signUp action in our plan, or here?
+        // Let's check the signUp implementation plan.
+        // Plan said: "Update handleSignUp to automatically redirect/login if the signup action returns success (and implies login)."
+
+        // If the server action 'signUp' already does auto-login (which the previous view_code_item showed it tries to), 
+        // then we just need to handle success here.
+        // The previous code showed `signUp` tries `signInWithPassword` after creating profile.
+
+        if (result.message?.includes('로그인 완료')) {
+          toast.success('회원가입 및 로그인 완료!')
+          router.push('/')
+          router.refresh()
+        } else {
+          // Case where auto-login failed but signup worked (or email confirm needed)
+          toast.success(result.message || '회원가입이 완료되었습니다.')
+          if (!result.message?.includes('로그인해주세요')) {
+            // If it's a "silent" success that implies login (which our server action seems to attempt)
+            // But wait, the `signUp` code item I viewed returns { success: true, message: '회원가입 및 로그인 완료' } on success.
+            // So we can assume it's logged in.
+            router.push('/')
+            router.refresh()
+          } else {
+            setLoading(false)
+          }
+        }
       } else {
         setError(result?.error || '회원가입에 실패했습니다.')
         setLoading(false)
@@ -162,7 +229,7 @@ export default function LoginPage() {
                   disabled={loading}
                   className="w-full py-2.5 bg-slate-100 text-slate-700 rounded-lg font-bold hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  회원가입
+                  회원가입 ({loading ? '처리 중...' : '및 자동 로그인'})
                 </button>
               </div>
             </>

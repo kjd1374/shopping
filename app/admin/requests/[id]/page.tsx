@@ -17,6 +17,7 @@ interface RequestItem {
   admin_rerequest_note: string | null
   user_quantity: number
   created_at: string
+  is_buyable: boolean
 }
 
 interface Request {
@@ -59,7 +60,7 @@ export default function RequestDetailPage() {
       if (result.success && result.request && result.items) {
         setRequest(result.request as Request)
         setItems(result.items as RequestItem[])
-        
+
         // 초기값 설정
         const initialUpdates: Record<string, ItemUpdate> = {}
         result.items.forEach((item: RequestItem) => {
@@ -69,7 +70,7 @@ export default function RequestDetailPage() {
             color: item.admin_color || '',
             etc: item.admin_etc || '',
             rerequestNote: item.admin_rerequest_note || '',
-            isAvailable: true, // 기본값
+            isAvailable: item.is_buyable !== false, // 기본값 false면 false, null/undefined/true면 true
           }
         })
         setItemUpdates(initialUpdates)
@@ -112,7 +113,7 @@ export default function RequestDetailPage() {
         const color = data.color.trim() || null
         const etc = data.etc.trim() || null
         const rerequestNote = data.rerequestNote.trim() || null
-        return updateRequestItem(itemId, price, capacity, color, etc, rerequestNote)
+        return updateRequestItem(itemId, price, capacity, color, etc, rerequestNote, data.isAvailable)
       })
 
       const results = await Promise.all(updatePromises)
@@ -174,13 +175,12 @@ export default function RequestDetailPage() {
           </div>
           <div className="flex items-center gap-3">
             <span
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg ${
-                request.status === 'pending'
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg ${request.status === 'pending'
                   ? 'bg-yellow-100 text-yellow-800'
                   : request.status === 'reviewed'
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-green-100 text-green-800'
-              }`}
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-green-100 text-green-800'
+                }`}
             >
               {request.status === 'pending' ? '대기중' : request.status === 'reviewed' ? '승인완료' : '주문완료'}
             </span>
@@ -207,13 +207,13 @@ export default function RequestDetailPage() {
                       />
                     </div>
                   )}
-                  
+
                   {/* 상품 정보 */}
                   <div className="flex-1 min-w-0">
                     <h2 className="text-xl md:text-2xl font-black text-slate-900 mb-3 break-words">
                       {item.og_title}
                     </h2>
-                    
+
                     {item.original_url && (
                       <a
                         href={item.original_url}
@@ -227,7 +227,7 @@ export default function RequestDetailPage() {
                         원본 링크 열기
                       </a>
                     )}
-                    
+
                     <div className="mt-3 text-sm text-slate-600">
                       <span className="font-medium">요청 수량:</span> {item.user_quantity}개
                     </div>
@@ -316,18 +316,16 @@ export default function RequestDetailPage() {
                       <button
                         type="button"
                         onClick={() => handleItemChange(item.id, 'isAvailable', !itemUpdates[item.id]?.isAvailable)}
-                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                          itemUpdates[item.id]?.isAvailable !== false
+                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${itemUpdates[item.id]?.isAvailable !== false
                             ? 'bg-indigo-600'
                             : 'bg-slate-300'
-                        }`}
+                          }`}
                       >
                         <span
-                          className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
-                            itemUpdates[item.id]?.isAvailable !== false
+                          className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${itemUpdates[item.id]?.isAvailable !== false
                               ? 'translate-x-7'
                               : 'translate-x-1'
-                          }`}
+                            }`}
                         />
                       </button>
                       <span className="text-sm text-slate-600 font-medium">
