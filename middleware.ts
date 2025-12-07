@@ -32,20 +32,38 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // 보호된 라우트 (개발 편의를 위해 /admin은 제외)
+  // 보호된 라우트
   const protectedPaths = ['/request', '/mypage']
+  const adminPaths = ['/admin']
+
   const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path))
+  const isAdminPath = adminPaths.some((path) => request.nextUrl.pathname.startsWith(path))
 
   // 로그인 페이지는 로그인된 사용자가 접근하면 메인으로 리다이렉트
   if (request.nextUrl.pathname === '/login' && user) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // 보호된 라우트에 접근했는데 로그인되지 않은 경우
-  if (isProtectedPath && !user) {
+  // 1. 로그인 체크 (일반 보호 라우트 + 관리자 라우트)
+  if ((isProtectedPath || isAdminPath) && !user) {
     const redirectUrl = new URL('/login', request.url)
     redirectUrl.searchParams.set('redirect', request.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)
+  }
+
+  // 2. 관리자 권한 체크
+  if (isAdminPath && user) {
+    // 프로필에서 권한 조회
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    // 관리자가 아니면 메인으로 리다이렉트
+    if (!profile || profile.role !== 'admin') {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
   }
 
   return supabaseResponse
