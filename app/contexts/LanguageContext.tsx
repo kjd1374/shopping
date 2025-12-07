@@ -18,11 +18,11 @@ const translations: Record<Language, Record<string, string>> = {
     // 헤더
     'header.title': 'Vina-K',
     'header.myRequests': '내 요청함',
-    
+
     // 탭
     'tab.beauty': '뷰티 (Beauty)',
     'tab.fashion': '패션 (Fashion)',
-    
+
     // 랭킹
     'ranking.title.beauty': '🔥 올리브영 실시간 랭킹',
     'ranking.title.fashion': '👗 무신사 실시간 랭킹',
@@ -38,7 +38,7 @@ const translations: Record<Language, Record<string, string>> = {
     'ranking.systemError': '시스템 에러 발생',
     'ranking.productClick': '아래 입력창에 상품명을 입력하거나 URL을 붙여넣어주세요.',
     'language.products': '개 상품',
-    
+
     // 견적 요청
     'request.title': '📝 무엇이든 찾아드려요',
     'request.photo': '사진',
@@ -61,16 +61,42 @@ const translations: Record<Language, Record<string, string>> = {
     'request.badge.text': '직접입력',
     'request.preview': '미리보기',
     'request.thumbnail': '썸네일',
+
+    // My Page
+    'mypage.title': '내 요청함',
+    'mypage.main': '메인으로',
+    'mypage.logout': '로그아웃',
+    'mypage.empty': '아직 요청한 상품이 없습니다.',
+    'mypage.goRequest': '견적 요청하러 가기',
+    'mypage.requestNum': '요청 #',
+    'mypage.unitPrice': '단가',
+    'mypage.cantBuy': '🚫 구매 불가',
+    'mypage.cantBuyDesc': '관리자가 해당 상품을 구매할 수 없다고 표시했습니다.',
+    'mypage.adminNote': '⚠️ 관리자 안내',
+    'mypage.selectCapacity': '용량 선택',
+    'mypage.selectColor': '색상 선택',
+    'mypage.selectEtc': '기타 옵션',
+    'mypage.quantity': '수량',
+    'mypage.estimatedTotal': '예상 결제 금액',
+    'mypage.requestPurchase': '구매 요청하기',
+    'mypage.purchaseRequested': '✅ 구매요청 완료',
+    'mypage.total': '총액',
+    'mypage.selectOption': '옵션을 선택해주세요.',
+    'mypage.requestSuccess': '구매 요청이 완료되었습니다!',
+    'mypage.requestFail': '구매 요청에 실패했습니다',
+    'mypage.status.pending': '대기중',
+    'mypage.status.reviewed': '승인완료',
+    'mypage.status.ordered': '구매요청완료',
   },
   vi: {
     // Header
     'header.title': 'Vina-K',
     'header.myRequests': 'Yêu cầu của tôi',
-    
+
     // Tab
     'tab.beauty': 'Làm đẹp (Beauty)',
     'tab.fashion': 'Thời trang (Fashion)',
-    
+
     // Ranking
     'ranking.title.beauty': '🔥 Bảng xếp hạng Olive Young',
     'ranking.title.fashion': '👗 Bảng xếp hạng Musinsa',
@@ -86,7 +112,7 @@ const translations: Record<Language, Record<string, string>> = {
     'ranking.systemError': 'Đã xảy ra lỗi hệ thống',
     'ranking.productClick': 'Vui lòng nhập tên sản phẩm hoặc dán URL vào ô nhập bên dưới.',
     'language.products': 'sản phẩm',
-    
+
     // Request
     'request.title': '📝 Tìm bất cứ thứ gì cho bạn',
     'request.photo': 'Ảnh',
@@ -109,6 +135,32 @@ const translations: Record<Language, Record<string, string>> = {
     'request.badge.text': 'Nhập trực tiếp',
     'request.preview': 'Xem trước',
     'request.thumbnail': 'Hình thu nhỏ',
+
+    // My Page
+    'mypage.title': 'Yêu cầu của tôi',
+    'mypage.main': 'Trang chủ',
+    'mypage.logout': 'Đăng xuất',
+    'mypage.empty': 'Bạn chưa có yêu cầu nào.',
+    'mypage.goRequest': 'Yêu cầu báo giá ngay',
+    'mypage.requestNum': 'Yêu cầu #',
+    'mypage.unitPrice': 'Đơn giá',
+    'mypage.cantBuy': '🚫 Không thể mua',
+    'mypage.cantBuyDesc': 'Quản trị viên đã đánh dấu sản phẩm này không thể mua.',
+    'mypage.adminNote': '⚠️ Thông báo từ quản trị viên',
+    'mypage.selectCapacity': 'Chọn dung tích',
+    'mypage.selectColor': 'Chọn màu sắc',
+    'mypage.selectEtc': 'Tùy chọn khác',
+    'mypage.quantity': 'Số lượng',
+    'mypage.estimatedTotal': 'Tổng tiền dự kiến',
+    'mypage.requestPurchase': 'Yêu cầu mua hàng',
+    'mypage.purchaseRequested': '✅ Đã yêu cầu mua',
+    'mypage.total': 'Tổng cộng',
+    'mypage.selectOption': 'Vui lòng chọn tùy chọn.',
+    'mypage.requestSuccess': 'Yêu cầu mua hàng thành công!',
+    'mypage.requestFail': 'Yêu cầu mua hàng thất bại',
+    'mypage.status.pending': 'Đang chờ',
+    'mypage.status.reviewed': 'Đã duyệt',
+    'mypage.status.ordered': 'Đã đặt hàng',
   },
 }
 

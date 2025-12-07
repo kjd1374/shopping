@@ -56,7 +56,7 @@ export default function Home() {
   const fetchProducts = async (cat: Category) => {
     setLoading(true)
     const type = cat === 'beauty' ? 'ranking_beauty' : 'ranking_fashion'
-    
+
     const { data } = await supabase
       .from('products')
       .select('*')
@@ -124,7 +124,6 @@ export default function Home() {
           {t('header.title')}
         </h1>
         <div className="flex items-center gap-3">
-          <LanguageSwitcher />
           {isLoggedIn ? (
             <button
               onClick={() => router.push('/mypage')}
@@ -140,6 +139,7 @@ export default function Home() {
               로그인
             </button>
           )}
+          <LanguageSwitcher />
         </div>
       </header>
 
@@ -150,11 +150,10 @@ export default function Home() {
             <button
               key={tab}
               onClick={() => setCategory(tab)}
-              className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${
-                category === tab
+              className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${category === tab
                   ? 'bg-white text-slate-900 shadow-sm'
                   : 'text-slate-400 hover:text-slate-600'
-              }`}
+                }`}
             >
               {tab === 'beauty' ? t('tab.beauty') : t('tab.fashion')}
             </button>
@@ -182,7 +181,7 @@ export default function Home() {
                 {category === 'fashion' ? t('ranking.fashion.empty') : t('ranking.empty')}
               </p>
               {category === 'beauty' && (
-                <button 
+                <button
                   onClick={handleUpdateRanking}
                   className="mt-3 text-xs text-blue-500 underline font-bold"
                 >
@@ -193,14 +192,14 @@ export default function Home() {
           ) : (
             <div className="flex gap-3 overflow-x-auto pb-6 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
               {products.map((product) => (
-                <div 
-                  key={product.id} 
+                <div
+                  key={product.id}
                   className="group relative w-36 flex-shrink-0 snap-start flex flex-col"
                 >
                   <div className="relative w-full aspect-[3/4] rounded-xl overflow-hidden bg-white shadow-sm border border-slate-100 mb-2">
-                    <img 
-                      src={product.image} 
-                      alt={product.title} 
+                    <img
+                      src={product.image}
+                      alt={product.title}
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
@@ -216,7 +215,7 @@ export default function Home() {
                     <h3 className="text-xs font-medium text-slate-900 line-clamp-2 h-8 leading-tight mb-2">
                       {product.title}
                     </h3>
-                    
+
                     <button
                       onClick={() => handleRequest(product)}
                       className="w-full py-1.5 bg-white border border-slate-200 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all"
@@ -246,7 +245,7 @@ export default function Home() {
           title="랭킹 업데이트"
         >
           {isScraping ? (
-            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
           ) : (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
           )}

@@ -155,7 +155,7 @@ export default function MyPage() {
   const handleConfirmOrder = async (itemId: string) => {
     const selection = itemSelections[itemId]
     if (!selection) {
-      alert('옵션을 선택해주세요.')
+      alert(t('mypage.selectOption'))
       return
     }
 
@@ -167,10 +167,10 @@ export default function MyPage() {
     const result = await confirmOrder(itemId, selectedOptions, selection.quantity)
 
     if (result.success) {
-      alert('구매 요청이 완료되었습니다!')
+      alert(t('mypage.requestSuccess'))
       loadData() // 데이터 새로고침
     } else {
-      alert('구매 요청에 실패했습니다: ' + result.error)
+      alert(t('mypage.requestFail') + ': ' + result.error)
     }
   }
 
@@ -191,16 +191,12 @@ export default function MyPage() {
       reviewed: 'bg-blue-100 text-blue-800 border-blue-300',
       ordered: 'bg-green-100 text-green-800 border-green-300',
     }
-    const labels = {
-      pending: '대기중',
-      reviewed: '승인완료',
-      ordered: '구매요청완료',
-    }
+    const labelKey = `mypage.status.${status}`
     return (
       <span
         className={`px-2.5 py-1 text-xs font-bold rounded-md border ${styles[status as keyof typeof styles] || styles.pending}`}
       >
-        {labels[status as keyof typeof labels] || status}
+        {t(labelKey)}
       </span>
     )
   }
@@ -221,7 +217,7 @@ export default function MyPage() {
       <div className="min-h-screen bg-slate-50 p-6">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-center h-64">
-            <div className="text-slate-400">로딩 중...</div>
+            <div className="text-slate-400">Loading...</div>
           </div>
         </div>
       </div>
@@ -234,9 +230,9 @@ export default function MyPage() {
         {/* 헤더 */}
         <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 mb-1">내 요청함</h1>
+            <h1 className="text-2xl font-black text-slate-900 mb-1">{t('mypage.title')}</h1>
             <p className="text-sm text-slate-500">
-              {user?.email || '사용자'}
+              {user?.email || 'User'}
             </p>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
@@ -245,13 +241,13 @@ export default function MyPage() {
               onClick={() => router.push('/')}
               className="text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg hover:bg-slate-200 transition-colors whitespace-nowrap"
             >
-              메인으로
+              {t('mypage.main')}
             </button>
             <button
               onClick={handleLogout}
               className="text-xs font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors whitespace-nowrap"
             >
-              로그아웃
+              {t('mypage.logout')}
             </button>
           </div>
         </div>
@@ -259,12 +255,12 @@ export default function MyPage() {
         {/* 요청 목록 */}
         {requests.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
-            <p className="text-slate-400 mb-4">아직 요청한 상품이 없습니다.</p>
+            <p className="text-slate-400 mb-4">{t('mypage.empty')}</p>
             <button
               onClick={() => router.push('/')}
               className="text-sm font-bold bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
             >
-              견적 요청하러 가기
+              {t('mypage.goRequest')}
             </button>
           </div>
         ) : (
@@ -281,7 +277,7 @@ export default function MyPage() {
                     </p>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-slate-900">
-                        요청 #{request.id.substring(0, 8)}
+                        {t('mypage.requestNum')}{request.id.substring(0, 8)}
                       </span>
                       {getStatusBadge(request.status)}
                     </div>
@@ -318,7 +314,7 @@ export default function MyPage() {
                             </p>
                             {item.admin_price && (
                               <p className="text-xs text-slate-600 mb-1">
-                                단가: {item.admin_price.toLocaleString('vi-VN')} VND
+                                {t('mypage.unitPrice')}: {item.admin_price.toLocaleString('vi-VN')} VND
                               </p>
                             )}
                           </div>
@@ -327,15 +323,15 @@ export default function MyPage() {
                         {/* 구매 불가 안내 (승인 완료 상태에서) */}
                         {!isBuyable && isReviewed && (
                           <div className="mb-4 p-3 bg-slate-100 border-2 border-slate-200 rounded-lg">
-                            <p className="text-xs font-bold text-slate-600 mb-1">🚫 구매 불가</p>
-                            <p className="text-xs text-slate-500">관리자가 해당 상품을 구매할 수 없다고 표시했습니다.</p>
+                            <p className="text-xs font-bold text-slate-600 mb-1">{t('mypage.cantBuy')}</p>
+                            <p className="text-xs text-slate-500">{t('mypage.cantBuyDesc')}</p>
                           </div>
                         )}
 
                         {/* 재요청 안내 */}
                         {hasRerequestNote && (
                           <div className="mb-4 p-3 bg-red-50 border-2 border-red-200 rounded-lg">
-                            <p className="text-xs font-bold text-red-800 mb-1">⚠️ 관리자 안내</p>
+                            <p className="text-xs font-bold text-red-800 mb-1">{t('mypage.adminNote')}</p>
                             <p className="text-xs text-red-700">{item.admin_rerequest_note}</p>
                           </div>
                         )}
@@ -347,7 +343,7 @@ export default function MyPage() {
                             {capacityOptions.length > 0 && (
                               <div>
                                 <label className="block text-xs font-bold text-slate-700 mb-2">
-                                  용량 선택
+                                  {t('mypage.selectCapacity')}
                                 </label>
                                 {capacityOptions.length === 1 ? (
                                   <p className="text-sm text-slate-600">{capacityOptions[0]}</p>
@@ -374,7 +370,7 @@ export default function MyPage() {
                             {colorOptions.length > 0 && (
                               <div>
                                 <label className="block text-xs font-bold text-slate-700 mb-2">
-                                  색상 선택
+                                  {t('mypage.selectColor')}
                                 </label>
                                 {colorOptions.length === 1 ? (
                                   <p className="text-sm text-slate-600">{colorOptions[0]}</p>
@@ -401,7 +397,7 @@ export default function MyPage() {
                             {etcOptions.length > 0 && (
                               <div>
                                 <label className="block text-xs font-bold text-slate-700 mb-2">
-                                  기타 옵션
+                                  {t('mypage.selectEtc')}
                                 </label>
                                 {etcOptions.length === 1 ? (
                                   <p className="text-sm text-slate-600">{etcOptions[0]}</p>
@@ -427,7 +423,7 @@ export default function MyPage() {
                             {/* 수량 조절 */}
                             <div>
                               <label className="block text-xs font-bold text-slate-700 mb-2">
-                                수량
+                                {t('mypage.quantity')}
                               </label>
                               <div className="flex items-center gap-3">
                                 <button
@@ -452,7 +448,7 @@ export default function MyPage() {
                             {item.admin_price && (
                               <div className="p-4 bg-indigo-50 border-2 border-indigo-200 rounded-xl">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-sm font-bold text-slate-700">예상 결제 금액</span>
+                                  <span className="text-sm font-bold text-slate-700">{t('mypage.estimatedTotal')}</span>
                                   <span className="text-2xl font-black text-indigo-600">
                                     {totalPrice.toLocaleString('vi-VN')} VND
                                   </span>
@@ -466,10 +462,10 @@ export default function MyPage() {
                             {/* 구매 요청하기 버튼 */}
                             <button
                               onClick={() => handleConfirmOrder(item.id)}
-                              disabled={request.status !== 'reviewed' || hasRerequestNote}
+                              disabled={request.status !== 'reviewed' || hasRerequestNote || !isBuyable}
                               className="w-full py-4 bg-indigo-600 text-white text-base font-bold rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg active:scale-[0.98]"
                             >
-                              구매 요청하기
+                              {t('mypage.requestPurchase')}
                             </button>
                           </div>
                         )}
@@ -477,29 +473,26 @@ export default function MyPage() {
                         {/* 주문완료 상태일 때 */}
                         {request.status === 'ordered' && item.user_selected_options && (
                           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                            <p className="text-xs font-bold text-green-800 mb-2">✅ 구매요청 완료</p> {/* Updated text from "주문 완료" to "구매요청 완료" as requested, though status is still 'ordered' internally */}
+                            <p className="text-xs font-bold text-green-800 mb-2">{t('mypage.purchaseRequested')}</p>
                             <div className="text-xs text-green-700 space-y-1">
                               {item.user_selected_options.capacity && (
-                                <p>용량: {item.user_selected_options.capacity}</p>
+                                <p>{t('mypage.selectCapacity')}: {item.user_selected_options.capacity}</p>
                               )}
                               {item.user_selected_options.color && (
-                                <p>색상: {item.user_selected_options.color}</p>
+                                <p>{t('mypage.selectColor')}: {item.user_selected_options.color}</p>
                               )}
                               {item.user_selected_options.etc && (
-                                <p>기타: {item.user_selected_options.etc}</p>
+                                <p>{t('mypage.selectEtc')}: {item.user_selected_options.etc}</p>
                               )}
-                              <p>수량: {item.user_quantity}개</p>
+                              <p>{t('mypage.quantity')}: {item.user_quantity}개</p>
                               {item.admin_price && (
                                 <p className="font-bold mt-2">
-                                  총액: {(item.admin_price * item.user_quantity).toLocaleString('vi-VN')} VND
+                                  {t('mypage.total')}: {(item.admin_price * item.user_quantity).toLocaleString('vi-VN')} VND
                                 </p>
                               )}
                             </div>
                           </div>
                         )}
-
-                        {/* If status is ordered but item was marked not buyable later (unlikely edge case but safe to handle) or no options selected yet but status moved?? */}
-                        {/* Actually if status is ordered, it means user confirmed it. So it must have been buyable at that time. */}
                       </div>
                     )
                   })}
