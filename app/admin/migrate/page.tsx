@@ -95,7 +95,14 @@ ALTER TABLE IF EXISTS "RequestOptionValue" ENABLE ROW LEVEL SECURITY;
 
 -- Quotation (Legacy) - Lock down
 ALTER TABLE IF EXISTS "Quotation" ENABLE ROW LEVEL SECURITY;
--- No active policy means only service role can access`
+-- No active policy means only service role can access
+
+-- 8. Sync Missing Profiles (누락된 프로필 생성)
+-- 이미 가입했지만 프로필이 없는 유저들을 위해 실행 (auth.users -> public.profiles)
+INSERT INTO public.profiles (id, email, role)
+SELECT id, email, 'user'
+FROM auth.users
+ON CONFLICT (id) DO NOTHING;`
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(sql)
