@@ -32,7 +32,7 @@ export default function BatchDetailClient({
 }: {
     initialRequests: Request[],
     batchId: string,
-    batchInfo: any
+    batchInfo: { batch_name?: string; tracking_no?: string }
 }) {
     const router = useRouter()
 
@@ -179,7 +179,7 @@ function RequestCard({ request, batchId }: { request: Request, batchId: string }
 
             {/* 3. Bottom: Items */}
             <div className="p-4 space-y-3">
-                {request.request_items?.map((item, idx) => (
+                {request.request_items?.map((item) => (
                     <div key={item.id} className="flex gap-3 p-2 rounded-lg hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-colors cursor-pointer" onClick={(e) => {
                         const cb = e.currentTarget.querySelector('input[type="checkbox"]') as HTMLInputElement
                         if (cb && e.target !== cb) cb.checked = !cb.checked

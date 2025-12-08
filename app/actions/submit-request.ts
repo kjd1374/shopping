@@ -15,7 +15,7 @@ export async function submitProductRequest(items: RequestItem[]) {
 
   try {
     const supabase = createClient()
-    
+
     // 현재 로그인된 사용자 정보 가져오기
     const {
       data: { user },
@@ -38,11 +38,11 @@ export async function submitProductRequest(items: RequestItem[]) {
       console.error('Request insert error:', requestError)
       throw new Error(`Request creation failed: ${requestError.message || requestError.code || 'Unknown error'}`)
     }
-    
+
     if (!requestData || !requestData.id) {
       throw new Error('Failed to get request ID')
     }
-    
+
     const requestId = requestData.id
 
     // 2. 개별 상품(request_items) 저장
@@ -66,13 +66,14 @@ export async function submitProductRequest(items: RequestItem[]) {
 
     return { success: true, requestId }
 
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as any
     console.error('Submit error details:', {
-      error,
-      message: error?.message,
-      code: error?.code,
-      details: error?.details,
-      hint: error?.hint,
+      error: err,
+      message: err?.message,
+      code: err?.code,
+      details: err?.details,
+      hint: err?.hint,
       itemsCount: items.length,
       sampleItem: items[0] ? {
         url: items[0].url?.substring(0, 50),
@@ -80,7 +81,7 @@ export async function submitProductRequest(items: RequestItem[]) {
         hasImage: !!items[0].image
       } : null
     })
-    const errorMessage = error?.message || error?.code || error?.toString() || 'Unknown error occurred'
+    const errorMessage = err?.message || err?.code || err?.toString() || 'Unknown error occurred'
     return { success: false, error: errorMessage }
   }
 }

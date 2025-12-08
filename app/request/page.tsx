@@ -35,8 +35,8 @@ export default function RequestPage() {
     try {
       const preview = await getUrlPreview(inputUrl)
       setItems(prev => [...prev, preview])
-      setInputUrl('') 
-    } catch (error) {
+      setInputUrl('')
+    } catch {
       alert('정보를 가져오는 데 실패했습니다.')
     } finally {
       setLoading(false)
@@ -71,7 +71,7 @@ export default function RequestPage() {
   // 견적 요청 제출 핸들러
   const handleSubmit = async () => {
     if (items.length === 0) return
-    
+
     setSubmitLoading(true)
     try {
       const result = await submitProductRequest(
@@ -87,7 +87,7 @@ export default function RequestPage() {
       } else {
         alert(result.error || '요청 실패')
       }
-    } catch (error) {
+    } catch {
       alert('서버 오류가 발생했습니다.')
     } finally {
       setSubmitLoading(false)
@@ -105,10 +105,10 @@ export default function RequestPage() {
           </div>
           <h2 className="text-2xl font-bold text-slate-900">요청이 접수되었습니다!</h2>
           <p className="text-slate-500 leading-relaxed">
-            Vina-K 팀이 확인 후 24시간 내에<br/>
+            Vina-K 팀이 확인 후 24시간 내에<br />
             정확한 가격과 배송비를 알려드릴게요.
           </p>
-          <button 
+          <button
             onClick={() => {
               setItems([])
               setIsCompleted(false)
@@ -155,8 +155,8 @@ export default function RequestPage() {
             >
               {loading ? (
                 <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
               ) : (
                 '추가'
@@ -174,36 +174,36 @@ export default function RequestPage() {
             <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider px-1">
               요청 목록 ({items.length})
             </h2>
-            
+
             {items.map((item, idx) => {
               const currentImgIdx = imageIndices[idx] || 0
               const hasMultipleImages = item.images.length > 1
-              
+
               return (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex gap-4 animate-fade-in relative group"
                 >
                   {/* 썸네일 슬라이더 */}
                   <div className="relative w-24 h-24 flex-shrink-0 bg-slate-100 rounded-xl overflow-hidden border border-slate-100 group/image">
                     {item.images.length > 0 ? (
                       <>
-                        <img 
-                          src={item.images[currentImgIdx]} 
-                          alt="썸네일" 
-                          className="w-full h-full object-cover" 
+                        <img
+                          src={item.images[currentImgIdx]}
+                          alt="썸네일"
+                          className="w-full h-full object-cover"
                         />
                         {hasMultipleImages && (
                           <>
                             {/* 좌우 화살표 (호버시 표시) */}
                             <div className="absolute inset-0 flex justify-between items-center px-1 opacity-0 group-hover/image:opacity-100 transition-opacity">
-                              <button 
+                              <button
                                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); prevImage(idx, item.images.length) }}
                                 className="bg-black/50 text-white rounded-full p-1.5 hover:bg-black/70 transform active:scale-90 transition-all"
                               >
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                               </button>
-                              <button 
+                              <button
                                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); nextImage(idx, item.images.length) }}
                                 className="bg-black/50 text-white rounded-full p-1.5 hover:bg-black/70 transform active:scale-90 transition-all"
                               >
@@ -213,8 +213,8 @@ export default function RequestPage() {
                             {/* 인디케이터 */}
                             <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-1">
                               {item.images.slice(0, 5).map((_, i) => (
-                                <div 
-                                  key={i} 
+                                <div
+                                  key={i}
                                   className={`w-1 h-1 rounded-full transition-colors ${i === currentImgIdx ? 'bg-white shadow-sm' : 'bg-white/40'}`}
                                 />
                               ))}
@@ -235,18 +235,18 @@ export default function RequestPage() {
                       {item.title || '제목 없음'}
                     </h3>
                     {/* URL 텍스트 제거됨 */}
-                    
+
                     {item.error ? (
                       <p className="text-xs text-red-500 font-medium bg-red-50 inline-block px-2 py-1 rounded-lg self-start">
                         ⚠️ {item.error}
                       </p>
                     ) : (
                       <div className="flex gap-2">
-                         {hasMultipleImages && (
-                           <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-md font-medium">
-                             이미지 {item.images.length}장
-                           </span>
-                         )}
+                        {hasMultipleImages && (
+                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-md font-medium">
+                            이미지 {item.images.length}장
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>

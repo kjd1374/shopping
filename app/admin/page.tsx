@@ -86,8 +86,8 @@ export default function AdminDashboard() {
       fetchRequests()
       router.push('/admin/batches')
 
-    } catch (error: any) {
-      toast.error('오류 발생: ' + error.message)
+    } catch (error) {
+      toast.error('오류 발생: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
 
@@ -104,8 +104,8 @@ export default function AdminDashboard() {
       } else {
         toast.error('삭제 실패: ' + result.error)
       }
-    } catch (error: any) {
-      toast.error('오류 발생: ' + error.message)
+    } catch (error) {
+      toast.error('오류 발생: ' + (error instanceof Error ? error.message : 'Unknown error'))
     }
   }
 

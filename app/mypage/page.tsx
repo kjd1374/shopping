@@ -395,7 +395,7 @@ export default function MyPage() {
                             <p className="text-sm font-bold text-yellow-800 mb-2">📢 추가 정보 요청</p>
                             {item.admin_rerequest_note && (
                               <p className="text-sm text-yellow-900 bg-white/50 p-2 rounded border border-yellow-100 mb-3">
-                                "&quot; {item.admin_rerequest_note} &quot;"
+                                &quot;{item.admin_rerequest_note}&quot;
                               </p>
                             )}
 

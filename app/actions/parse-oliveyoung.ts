@@ -2,7 +2,7 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import * as cheerio from 'cheerio'
-import { Browser, Page } from 'puppeteer-core'
+import { Browser } from 'puppeteer-core'
 import { getBrowser } from '../lib/puppeteer'
 
 // 응답 타입 정의

@@ -15,6 +15,7 @@ export interface RequestSectionRef {
   addProduct: (product: { title: string; image: string; url: string }) => boolean
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface RequestSectionProps { }
 
 const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props, ref) => {
@@ -132,7 +133,7 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
           setItems(prev => [...prev, newItem])
           setProductName('')
           setInputUrl('')
-        } catch (error) {
+        } catch {
           alert(t('request.fetchFailed'))
         } finally {
           setLoading(false)
@@ -194,7 +195,7 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
         alert(errorMsg)
         console.error('Submit failed:', result)
       }
-    } catch (error) {
+    } catch {
       alert(t('request.error'))
     } finally {
       setSubmitLoading(false)
@@ -324,8 +325,8 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${item.file ? 'bg-green-50 text-green-600' :
-                    item.url ? 'bg-indigo-50 text-indigo-600' :
-                      'bg-orange-50 text-orange-600'
+                  item.url ? 'bg-indigo-50 text-indigo-600' :
+                    'bg-orange-50 text-orange-600'
                   }`}>
                   {item.file ? t('request.badge.photo') : item.url ? t('request.badge.url') : t('request.badge.text')}
                 </span>

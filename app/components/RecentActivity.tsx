@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useLanguage } from '../contexts/LanguageContext'
+// import { useLanguage } from '../contexts/LanguageContext'
 
 interface Activity {
     id: string
@@ -13,7 +13,7 @@ interface Activity {
 }
 
 export default function RecentActivity() {
-    const { t } = useLanguage()
+    // const { t } = useLanguage()
     const [activities, setActivities] = useState<Activity[]>([])
 
     useEffect(() => {
