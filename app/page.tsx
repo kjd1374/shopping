@@ -5,6 +5,7 @@ import { supabase } from './lib/supabase'
 import { scrapeOliveYoungRanking } from './actions/scrape-ranking'
 import { useRouter } from 'next/navigation'
 import RequestSection, { type RequestSectionRef } from './components/RequestSection'
+import RecentActivity from './components/RecentActivity'
 import LanguageSwitcher from './components/LanguageSwitcher'
 import { useLanguage } from './contexts/LanguageContext'
 import { createClient } from './lib/supabase/client'
@@ -159,8 +160,13 @@ export default function Home() {
       </header>
 
       <div className="max-w-md mx-auto">
+        {/* 스마트 견적 요청 섹션 (검색/요청) - 최상단 배치 */}
+        <RequestSection ref={requestSectionRef} />
+
+        <hr className="border-slate-100 my-4" />
+
         {/* 탭 메뉴 */}
-        <div className="flex p-1 mx-4 mt-6 mb-6 bg-slate-200/50 rounded-xl">
+        <div className="flex p-1 mx-4 mt-2 mb-6 bg-slate-200/50 rounded-xl">
           {(['beauty', 'fashion'] as Category[]).map((tab) => (
             <button
               key={tab}
@@ -246,8 +252,8 @@ export default function Home() {
 
         <hr className="border-slate-100 my-8" />
 
-        {/* 스마트 견적 요청 섹션 (컴포넌트) */}
-        <RequestSection ref={requestSectionRef} />
+        {/* 실시간 활동 내역 (더미 데이터) */}
+        <RecentActivity />
 
       </div>
 

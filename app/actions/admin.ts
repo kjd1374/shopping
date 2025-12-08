@@ -52,7 +52,7 @@ export async function getRequestDetails(requestId: string) {
     // 요청 아이템들 (모든 필드 포함)
     const { data: itemsData, error: itemsError } = await supabase
       .from('request_items')
-      .select('id, request_id, original_url, og_image, og_title, admin_price, admin_capacity, admin_color, admin_etc, admin_rerequest_note, user_selected_options, user_quantity, created_at, is_buyable')
+      .select('id, request_id, original_url, og_image, og_title, admin_price, admin_capacity, admin_color, admin_etc, admin_rerequest_note, user_selected_options, user_quantity, created_at, item_status, user_response')
       .eq('request_id', requestId)
       .order('created_at', { ascending: true })
 
@@ -77,7 +77,7 @@ export async function updateRequestItem(
   color: string | null,
   etc: string | null,
   rerequestNote: string | null,
-  isBuyable: boolean = true
+  itemStatus: string = 'pending'
 ) {
   try {
     const supabase = createClient()
@@ -89,7 +89,7 @@ export async function updateRequestItem(
         admin_color: color,
         admin_etc: etc,
         admin_rerequest_note: rerequestNote,
-        is_buyable: isBuyable,
+        item_status: itemStatus,
       })
       .eq('id', itemId)
 

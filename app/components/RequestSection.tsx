@@ -15,7 +15,7 @@ export interface RequestSectionRef {
   addProduct: (product: { title: string; image: string; url: string }) => boolean
 }
 
-interface RequestSectionProps {}
+interface RequestSectionProps { }
 
 const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props, ref) => {
   const { t } = useLanguage()
@@ -24,7 +24,7 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
   const [uploadedImage, setUploadedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
+
   const [items, setItems] = useState<ExtendedItem[]>([])
   const itemsRef = useRef<ExtendedItem[]>([])
   const [loading, setLoading] = useState(false)
@@ -61,7 +61,7 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
   // 외부에서 상품 추가하는 함수 (랭킹에서 클릭 시 사용)
   const addProduct = useCallback((product: { title: string; image: string; url: string }) => {
     const currentItems = itemsRef.current
-    
+
     if (currentItems.length >= 7) {
       alert(t('request.max'))
       return false
@@ -104,7 +104,7 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
         previewUrl: imagePreview,
       }
       setItems(prev => [...prev, newItem])
-      
+
       // 입력 필드 초기화
       setProductName('')
       setInputUrl('')
@@ -115,7 +115,7 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
     // Priority 2: URL이 있으면 크롤링 시도
     if (inputUrl.trim()) {
       const isUrl = /^https?:\/\//i.test(inputUrl)
-      
+
       if (isUrl) {
         if (items.some(item => item.url === inputUrl)) {
           alert(t('request.duplicate'))
@@ -168,7 +168,7 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
 
   const handleSubmit = async () => {
     if (items.length === 0) return
-    
+
     setSubmitLoading(true)
     try {
       const result = await submitProductRequest(
@@ -206,7 +206,7 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
       <div className="mt-8 p-6 bg-green-50 rounded-2xl border border-green-100 text-center animate-fade-in">
         <div className="text-green-600 text-xl font-bold mb-2">{t('request.success')}</div>
         <p className="text-green-700 text-sm mb-4">{t('request.success.desc')}</p>
-        <button 
+        <button
           onClick={() => setIsCompleted(false)}
           className="text-xs font-bold text-green-800 underline"
         >
@@ -217,7 +217,7 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
   }
 
   return (
-    <section className="mt-8 px-4 mb-20">
+    <section className="mt-8 px-4 mb-10">
       <div className="flex items-center justify-between mb-4 px-1">
         <h2 className="text-lg font-bold text-slate-800">
           {t('request.title')}
@@ -242,9 +242,9 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
           >
             {imagePreview ? (
               <>
-                <img 
-                  src={imagePreview} 
-                  alt={t('request.preview')} 
+                <img
+                  src={imagePreview}
+                  alt={t('request.preview')}
                   className="w-full h-full object-cover"
                 />
                 <button
@@ -299,17 +299,17 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
       {/* 요청 리스트 */}
       <div className="space-y-3">
         {items.map((item, idx) => (
-          <div 
-            key={idx} 
+          <div
+            key={idx}
             className="bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex gap-3 animate-fade-in relative group items-center"
           >
             {/* 썸네일 */}
             <div className="w-16 h-16 flex-shrink-0 bg-slate-100 rounded-lg overflow-hidden border border-slate-50">
               {item.images.length > 0 || item.previewUrl ? (
-                <img 
-                  src={item.previewUrl || item.images[0]} 
-                  alt={t('request.thumbnail')} 
-                  className="w-full h-full object-cover" 
+                <img
+                  src={item.previewUrl || item.images[0]}
+                  alt={t('request.thumbnail')}
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-300">
@@ -323,16 +323,15 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
             {/* 정보 */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                  item.file ? 'bg-green-50 text-green-600' :
-                  item.url ? 'bg-indigo-50 text-indigo-600' : 
-                  'bg-orange-50 text-orange-600'
-                }`}>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${item.file ? 'bg-green-50 text-green-600' :
+                    item.url ? 'bg-indigo-50 text-indigo-600' :
+                      'bg-orange-50 text-orange-600'
+                  }`}>
                   {item.file ? t('request.badge.photo') : item.url ? t('request.badge.url') : t('request.badge.text')}
                 </span>
               </div>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={item.title}
                 onChange={(e) => {
                   const newItems = [...items]

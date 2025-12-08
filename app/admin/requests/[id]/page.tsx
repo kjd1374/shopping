@@ -17,7 +17,8 @@ interface RequestItem {
   admin_rerequest_note: string | null
   user_quantity: number
   created_at: string
-  is_buyable: boolean
+  item_status: 'pending' | 'approved' | 'rejected' | 'needs_info'
+  user_response: string | null
 }
 
 interface Request {
@@ -33,7 +34,7 @@ interface ItemUpdate {
   color: string
   etc: string
   rerequestNote: string
-  isAvailable: boolean
+  itemStatus: string
 }
 
 export default function RequestDetailPage() {
@@ -70,7 +71,7 @@ export default function RequestDetailPage() {
             color: item.admin_color || '',
             etc: item.admin_etc || '',
             rerequestNote: item.admin_rerequest_note || '',
-            isAvailable: item.is_buyable !== false, // 기본값 false면 false, null/undefined/true면 true
+            itemStatus: item.item_status || 'pending',
           }
         })
         setItemUpdates(initialUpdates)
@@ -113,7 +114,7 @@ export default function RequestDetailPage() {
         const color = data.color.trim() || null
         const etc = data.etc.trim() || null
         const rerequestNote = data.rerequestNote.trim() || null
-        return updateRequestItem(itemId, price, capacity, color, etc, rerequestNote, data.isAvailable)
+        return updateRequestItem(itemId, price, capacity, color, etc, rerequestNote, data.itemStatus)
       })
 
       const results = await Promise.all(updatePromises)
@@ -176,10 +177,10 @@ export default function RequestDetailPage() {
           <div className="flex items-center gap-3">
             <span
               className={`px-3 py-1.5 text-xs font-bold rounded-lg ${request.status === 'pending'
-                  ? 'bg-yellow-100 text-yellow-800'
-                  : request.status === 'reviewed'
-                    ? 'bg-blue-100 text-blue-800'
-                    : 'bg-green-100 text-green-800'
+                ? 'bg-yellow-100 text-yellow-800'
+                : request.status === 'reviewed'
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'bg-green-100 text-green-800'
                 }`}
             >
               {request.status === 'pending' ? '대기중' : request.status === 'reviewed' ? '승인완료' : '주문완료'}
@@ -307,30 +308,55 @@ export default function RequestDetailPage() {
                     />
                   </div>
 
-                  {/* 구매 가능 여부 */}
-                  <div>
+                  {/* 사용자 답변 확인 (정보 요청 상태일 때) */}
+                  {item.user_response && (
+                    <div className="md:col-span-2 bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-2">
+                      <h4 className="text-sm font-bold text-yellow-800 mb-1">📢 사용자 답변</h4>
+                      <p className="text-sm text-yellow-900">{item.user_response}</p>
+                    </div>
+                  )}
+
+                  {/* 구매 가능 여부 (상태 변경) */}
+                  <div className="md:col-span-2">
                     <label className="block text-sm font-bold text-slate-700 mb-2">
-                      구매 가능 여부
+                      구매 상태 설정
                     </label>
-                    <div className="flex items-center gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {/* 승인 (Approved) */}
                       <button
                         type="button"
-                        onClick={() => handleItemChange(item.id, 'isAvailable', !itemUpdates[item.id]?.isAvailable)}
-                        className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${itemUpdates[item.id]?.isAvailable !== false
-                            ? 'bg-indigo-600'
-                            : 'bg-slate-300'
+                        onClick={() => handleItemChange(item.id, 'itemStatus', 'approved')}
+                        className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${itemUpdates[item.id]?.itemStatus === 'approved'
+                          ? 'bg-blue-600 border-blue-600 text-white'
+                          : 'bg-white border-slate-200 text-slate-600 hover:border-blue-400'
                           }`}
                       >
-                        <span
-                          className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${itemUpdates[item.id]?.isAvailable !== false
-                              ? 'translate-x-7'
-                              : 'translate-x-1'
-                            }`}
-                        />
+                        <span className="font-bold">✅ 승인 (구매가능)</span>
                       </button>
-                      <span className="text-sm text-slate-600 font-medium">
-                        {itemUpdates[item.id]?.isAvailable !== false ? '구매 가능' : '구매 불가'}
-                      </span>
+
+                      {/* 정보요청 (Needs Info) */}
+                      <button
+                        type="button"
+                        onClick={() => handleItemChange(item.id, 'itemStatus', 'needs_info')}
+                        className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${itemUpdates[item.id]?.itemStatus === 'needs_info'
+                          ? 'bg-yellow-500 border-yellow-500 text-white'
+                          : 'bg-white border-slate-200 text-slate-600 hover:border-yellow-400'
+                          }`}
+                      >
+                        <span className="font-bold">❓ 정보 요청</span>
+                      </button>
+
+                      {/* 불가 (Rejected) */}
+                      <button
+                        type="button"
+                        onClick={() => handleItemChange(item.id, 'itemStatus', 'rejected')}
+                        className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 transition-all ${itemUpdates[item.id]?.itemStatus === 'rejected'
+                          ? 'bg-red-500 border-red-500 text-white'
+                          : 'bg-white border-slate-200 text-slate-600 hover:border-red-400'
+                          }`}
+                      >
+                        <span className="font-bold">⛔ 구매 불가</span>
+                      </button>
                     </div>
                   </div>
 

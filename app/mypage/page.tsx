@@ -19,7 +19,9 @@ interface RequestItem {
   admin_rerequest_note: string | null
   user_selected_options: Record<string, string> | null
   user_quantity: number
-  is_buyable: boolean
+  item_status: 'pending' | 'approved' | 'rejected' | 'needs_info'
+  user_response: string | null
+  is_buyable?: boolean // Backwards compatibility
 }
 
 interface Request {
@@ -79,7 +81,9 @@ export default function MyPage() {
           admin_rerequest_note,
           user_selected_options,
           user_quantity,
-          is_buyable
+          user_quantity,
+          item_status,
+          user_response
         )
       `)
       .eq('user_id', currentUser.id)
@@ -171,6 +175,43 @@ export default function MyPage() {
       loadData() // 데이터 새로고침
     } else {
       alert(t('mypage.requestFail') + ': ' + result.error)
+    }
+  }
+
+  const handleDeleteItem = async (itemId: string) => {
+    if (!confirm('정말로 이 요청 항목을 삭제하시겠습니까?')) return
+
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('request_items')
+      .delete()
+      .eq('id', itemId)
+
+    if (error) {
+      alert('삭제 실패: ' + error.message)
+    } else {
+      alert('삭제되었습니다.')
+      loadData()
+    }
+  }
+
+  const handleSubmitResponse = async (itemId: string, response: string) => {
+    if (!response.trim()) return
+
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('request_items')
+      .update({
+        user_response: response,
+        item_status: 'pending' // 다시 대기 상태로 변경하여 관리자가 보도록 함
+      })
+      .eq('id', itemId)
+
+    if (error) {
+      alert('전송 실패: ' + error.message)
+    } else {
+      alert('답변이 전송되었습니다.')
+      loadData()
     }
   }
 
@@ -289,7 +330,12 @@ export default function MyPage() {
                   {request.request_items.map((item) => {
                     const isReviewed = request.status === 'reviewed'
                     const hasRerequestNote = !!item.admin_rerequest_note
-                    const isBuyable = item.is_buyable !== false // Default true
+
+                    // 상태 판별
+                    const isRejected = item.item_status === 'rejected' || (!item.item_status && item.is_buyable === false) // Migration fallback
+                    const isNeedsInfo = item.item_status === 'needs_info'
+                    const isApproved = item.item_status === 'approved' || (!item.item_status && item.is_buyable !== false) // Default approval fallback
+
                     const capacityOptions = parseOptions(item.admin_capacity)
                     const colorOptions = parseOptions(item.admin_color)
                     const etcOptions = parseOptions(item.admin_etc)
@@ -320,16 +366,75 @@ export default function MyPage() {
                           </div>
                         </div>
 
-                        {/* 구매 불가 안내 (승인 완료 상태에서) */}
-                        {!isBuyable && isReviewed && (
-                          <div className="mb-4 p-3 bg-slate-100 border-2 border-slate-200 rounded-lg">
-                            <p className="text-xs font-bold text-slate-600 mb-1">{t('mypage.cantBuy')}</p>
-                            <p className="text-xs text-slate-500">{t('mypage.cantBuyDesc')}</p>
+                        {/* 구매 불가 (Rejected) -> 삭제 버튼 */}
+                        {isRejected && isReviewed && (
+                          <div className="mb-4 p-4 bg-slate-100 border-2 border-slate-200 rounded-lg">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <p className="text-sm font-bold text-slate-600 mb-1">⛔ 구매 불가 안내</p>
+                                <p className="text-xs text-slate-500 mb-2">관리자가 해당 상품을 구매할 수 없다고 표시했습니다.</p>
+                                {item.admin_rerequest_note && (
+                                  <p className="text-xs text-slate-700 font-medium bg-white p-2 rounded border border-slate-200">
+                                    &quot; {item.admin_rerequest_note} &quot;
+                                  </p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => handleDeleteItem(item.id)}
+                                className="text-xs bg-white border border-slate-300 px-3 py-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors font-bold shadow-sm"
+                              >
+                                🗑️ 삭제하기
+                              </button>
+                            </div>
                           </div>
                         )}
 
-                        {/* 재요청 안내 */}
-                        {hasRerequestNote && (
+                        {/* 정보 요청 (Needs Info) -> 답변 입력창 */}
+                        {isNeedsInfo && isReviewed && (
+                          <div className="mb-4 p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
+                            <p className="text-sm font-bold text-yellow-800 mb-2">📢 추가 정보 요청</p>
+                            {item.admin_rerequest_note && (
+                              <p className="text-sm text-yellow-900 bg-white/50 p-2 rounded border border-yellow-100 mb-3">
+                                "&quot; {item.admin_rerequest_note} &quot;"
+                              </p>
+                            )}
+
+                            {item.user_response ? (
+                              <div className="bg-white p-3 rounded-lg border border-yellow-200">
+                                <p className="text-xs text-slate-500 mb-1">내 답변:</p>
+                                <p className="text-sm text-slate-800">{item.user_response}</p>
+                                <p className="text-xs text-slate-400 mt-2 text-right">관리자 확인 대기중...</p>
+                              </div>
+                            ) : (
+                              <form
+                                onSubmit={(e) => {
+                                  e.preventDefault()
+                                  const form = e.target as HTMLFormElement
+                                  const input = form.elements.namedItem('response') as HTMLInputElement
+                                  handleSubmitResponse(item.id, input.value)
+                                }}
+                                className="flex gap-2"
+                              >
+                                <input
+                                  name="response"
+                                  type="text"
+                                  placeholder="요청하신 정보를 입력해주세요"
+                                  className="flex-1 px-3 py-2 text-sm border border-yellow-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                  required
+                                />
+                                <button
+                                  type="submit"
+                                  className="px-4 py-2 bg-yellow-400 text-yellow-900 text-sm font-bold rounded-lg hover:bg-yellow-500 transition-colors shadow-sm"
+                                >
+                                  전송
+                                </button>
+                              </form>
+                            )}
+                          </div>
+                        )}
+
+                        {/* 재요청 안내 (Backwards Compatibility / Approved but with note) */}
+                        {hasRerequestNote && !isRejected && !isNeedsInfo && (
                           <div className="mb-4 p-3 bg-red-50 border-2 border-red-200 rounded-lg">
                             <p className="text-xs font-bold text-red-800 mb-1">{t('mypage.adminNote')}</p>
                             <p className="text-xs text-red-700">{item.admin_rerequest_note}</p>
@@ -337,7 +442,7 @@ export default function MyPage() {
                         )}
 
                         {/* 승인완료 상태일 때 옵션 선택 UI */}
-                        {isReviewed && !hasRerequestNote && isBuyable && (
+                        {isReviewed && isApproved && (
                           <div className="space-y-4 mb-4">
                             {/* 용량 선택 */}
                             {capacityOptions.length > 0 && (
@@ -354,8 +459,8 @@ export default function MyPage() {
                                         key={option}
                                         onClick={() => handleOptionChange(item.id, 'capacity', option)}
                                         className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all ${itemSelections[item.id]?.capacity === option
-                                            ? 'bg-indigo-600 text-white border-indigo-600'
-                                            : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400'
+                                          ? 'bg-indigo-600 text-white border-indigo-600'
+                                          : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400'
                                           }`}
                                       >
                                         {option}
@@ -381,8 +486,8 @@ export default function MyPage() {
                                         key={option}
                                         onClick={() => handleOptionChange(item.id, 'color', option)}
                                         className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all ${itemSelections[item.id]?.color === option
-                                            ? 'bg-indigo-600 text-white border-indigo-600'
-                                            : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400'
+                                          ? 'bg-indigo-600 text-white border-indigo-600'
+                                          : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400'
                                           }`}
                                       >
                                         {option}
@@ -408,8 +513,8 @@ export default function MyPage() {
                                         key={option}
                                         onClick={() => handleOptionChange(item.id, 'etc', option)}
                                         className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all ${itemSelections[item.id]?.etc === option
-                                            ? 'bg-indigo-600 text-white border-indigo-600'
-                                            : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400'
+                                          ? 'bg-indigo-600 text-white border-indigo-600'
+                                          : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400'
                                           }`}
                                       >
                                         {option}
@@ -462,7 +567,7 @@ export default function MyPage() {
                             {/* 구매 요청하기 버튼 */}
                             <button
                               onClick={() => handleConfirmOrder(item.id)}
-                              disabled={request.status !== 'reviewed' || hasRerequestNote || !isBuyable}
+                              disabled={request.status !== 'reviewed' || hasRerequestNote || !isApproved}
                               className="w-full py-4 bg-indigo-600 text-white text-base font-bold rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg active:scale-[0.98]"
                             >
                               {t('mypage.requestPurchase')}
