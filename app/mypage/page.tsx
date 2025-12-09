@@ -96,9 +96,7 @@ export default function MyPage() {
       .eq('user_id', currentUser.id)
       .order('created_at', { ascending: false })
 
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    const [errorMsg, setErrorMsg] = useState<string | null>(null)
-    /* eslint-enable @typescript-eslint/no-unused-vars */
+
 
     // ... existing code ...
 
