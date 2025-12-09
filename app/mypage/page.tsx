@@ -294,6 +294,10 @@ export default function MyPage() {
             <p className="text-sm text-slate-500">
               {user?.email || 'User'}
             </p>
+            {/* DEBUG INFO */}
+            <p className="text-xs text-slate-400 font-mono mt-1">
+              ID: {user?.id}
+            </p>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
             <LanguageSwitcher />
