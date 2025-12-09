@@ -281,6 +281,11 @@ export default function MyPage() {
             <p className="text-sm text-slate-500">
               {user?.email || 'User'}
             </p>
+            {/* DEBUG INFO */}
+            <div className="mt-2 p-2 bg-gray-100 rounded text-xs text-gray-500 font-mono">
+              <p>User ID: {user?.id}</p>
+              <p>DB/Env: {process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 20)}...</p>
+            </div>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
             <LanguageSwitcher />
