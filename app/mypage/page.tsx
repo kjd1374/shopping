@@ -44,6 +44,7 @@ export default function MyPage() {
     etc?: string
     quantity: number
   }>>({})
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const router = useRouter()
   const { t } = useLanguage()
 
@@ -95,11 +96,23 @@ export default function MyPage() {
       .eq('user_id', currentUser.id)
       .order('created_at', { ascending: false })
 
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    const [errorMsg, setErrorMsg] = useState<string | null>(null)
+    /* eslint-enable @typescript-eslint/no-unused-vars */
+
+    // ... existing code ...
+
     if (error) {
       console.error('Error loading requests:', error)
+      setErrorMsg(`데이터 불러오기 실패: ${error.message} (Code: ${error.code})`)
     } else {
       const requestsData = (data as Request[]) || []
       setRequests(requestsData)
+      if (requestsData.length === 0) {
+        // Double check just in case
+        console.log('No requests found for user:', currentUser.id)
+      }
+      // ... existing code ...
 
       // 초기 선택값 설정 (이미 선택된 값이 있으면 사용, 없으면 빈 값)
       const initialSelections: Record<string, {
@@ -298,6 +311,13 @@ export default function MyPage() {
             </button>
           </div>
         </div>
+
+        {/* 에러 메시지 표시 */}
+        {errorMsg && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 font-bold">
+            ⚠️ {errorMsg}
+          </div>
+        )}
 
         {/* 요청 목록 */}
         {requests.length === 0 ? (
