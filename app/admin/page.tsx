@@ -14,6 +14,7 @@ interface Request {
   representative_title: string
   request_items: {
     item_status: string
+    admin_price: number | null
   }[]
 }
 
@@ -136,8 +137,11 @@ export default function AdminDashboard() {
     // 상태 로직 계산
     let displayStatus: string = status
     if (status === 'pending') {
-      // 대기중인데 아이템 중에 하나라도 'pending'이 아닌 것(승인/거절 등)이 있으면 '검토중'으로 표시
-      const isReviewing = request_items?.some(item => item.item_status && item.item_status !== 'pending')
+      // 대기중인데 아이템 중에 하나라도 'pending'이 아닌 것(승인/거절 등)이 있거나, 가격이 입력된 경우 '검토중'으로 표시
+      const isReviewing = request_items?.some(item =>
+        (item.item_status && item.item_status !== 'pending') ||
+        item.admin_price !== null
+      )
       if (isReviewing) {
         displayStatus = 'reviewing'
       }

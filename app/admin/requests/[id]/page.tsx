@@ -392,11 +392,44 @@ export default function RequestDetailPage() {
               취소
             </button>
             <button
+              onClick={async () => {
+                if (!request) return
+                setSaving(true)
+                try {
+                  const updatePromises = Object.entries(itemUpdates).map(([itemId, data]) => {
+                    const price = data.price.trim() ? parseFloat(data.price.replace(/,/g, '')) : null
+                    const capacity = data.capacity.trim() || null
+                    const color = data.color.trim() || null
+                    const etc = data.etc.trim() || null
+                    const rerequestNote = data.rerequestNote.trim() || null
+                    return updateRequestItem(itemId, price, capacity, color, etc, rerequestNote, data.itemStatus)
+                  })
+
+                  const results = await Promise.all(updatePromises)
+                  if (results.some(r => !r.success)) {
+                    alert('일부 상품 저장에 실패했습니다.')
+                  } else {
+                    alert('임시 저장되었습니다.')
+                    fetchDetails() // Refresh data
+                  }
+                } catch (error) {
+                  console.error('Save error:', error)
+                  alert('저장 중 오류가 발생했습니다.')
+                } finally {
+                  setSaving(false)
+                }
+              }}
+              disabled={saving}
+              className="flex-1 md:flex-none px-6 py-3 text-base font-bold text-indigo-700 bg-indigo-100 rounded-lg hover:bg-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              임시 저장
+            </button>
+            <button
               onClick={handleSaveAll}
               disabled={saving || request.status !== 'pending'}
               className="flex-1 md:flex-none px-8 py-3 text-base font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
             >
-              {saving ? '저장 중...' : '견적 승인 (Review Complete)'}
+              {saving ? '저장 중...' : '견적 승인 완료 (Confirm)'}
             </button>
           </div>
         </div>

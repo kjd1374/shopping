@@ -17,7 +17,8 @@ export async function getRequests() {
           id,
           og_title,
           og_image,
-          item_status
+          item_status,
+          admin_price
         )
       `)
       .order('created_at', { ascending: false })
