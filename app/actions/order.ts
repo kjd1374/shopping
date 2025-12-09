@@ -10,7 +10,7 @@ export async function confirmOrder(
 ) {
   try {
     const supabase = createClient()
-    
+
     // 아이템 업데이트
     const { error: itemError } = await supabase
       .from('request_items')
@@ -42,7 +42,9 @@ export async function confirmOrder(
     // 모든 아이템이 옵션을 선택했는지 확인 (간단히 user_selected_options가 있는지 확인)
     const allOrdered = allItems?.every(item => item.user_selected_options !== null) || false
 
-    // 모든 아이템이 주문 완료되면 요청 상태도 ordered로 변경
+    // 모든 아이템이 주문 완료되어도 여기서 status를 'ordered'로 바꾸지 않음.
+    // 결제가 완료되어야 'ordered' 및 'paid'로 변경됨.
+    /*
     if (allOrdered) {
       const { error: requestError } = await supabase
         .from('requests')
@@ -51,6 +53,7 @@ export async function confirmOrder(
 
       if (requestError) throw requestError
     }
+    */
 
     return { success: true }
   } catch (error: any) {

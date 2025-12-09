@@ -16,7 +16,8 @@ export async function getRequests() {
         request_items (
           id,
           og_title,
-          og_image
+          og_image,
+          item_status
         )
       `)
       .order('created_at', { ascending: false })

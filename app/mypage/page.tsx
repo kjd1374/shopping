@@ -27,6 +27,9 @@ interface RequestItem {
 interface Request {
   id: string
   status: 'pending' | 'reviewed' | 'ordered'
+  payment_status?: 'unpaid' | 'deposit_pending' | 'deposit_paid' | 'final_pending' | 'paid'
+  deposit_amount?: number
+  final_amount?: number
   created_at: string
   request_items: RequestItem[]
 }
@@ -69,6 +72,9 @@ export default function MyPage() {
       .select(`
         id,
         status,
+        payment_status,
+        deposit_amount,
+        final_amount,
         created_at,
         request_items (
           id,
@@ -570,16 +576,37 @@ export default function MyPage() {
                               disabled={request.status !== 'reviewed' || hasRerequestNote || !isApproved}
                               className="w-full py-4 bg-indigo-600 text-white text-base font-bold rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg active:scale-[0.98]"
                             >
-                              {t('mypage.requestPurchase')}
+                              {t('mypage.saveOption')}
                             </button>
                           </div>
                         )}
 
-                        {/* 주문완료 상태일 때 */}
+                        {/* 주문완료 (입금대기/완료) 상태일 때 */}
                         {request.status === 'ordered' && item.user_selected_options && (
                           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                            <p className="text-xs font-bold text-green-800 mb-2">{t('mypage.purchaseRequested')}</p>
-                            <div className="text-xs text-green-700 space-y-1">
+                            <div className="flex justify-between items-start mb-2">
+                              <div>
+                                <p className="text-xs font-bold text-green-800 mb-1">{t('mypage.purchaseRequested')}</p>
+                                <p className="text-xs text-green-600 font-medium">
+                                  {/* @ts-ignore */}
+                                  {request.payment_status === 'deposit_pending' ? '선금 입금 확인 중입니다.' :
+                                    /* @ts-ignore */
+                                    request.payment_status === 'deposit_paid' ? '선금 입금 완료 / 배송 준비중' : '주문 접수됨'}
+                                </p>
+                              </div>
+                              {/* @ts-ignore */}
+                              {request.deposit_amount && (
+                                <div className="text-right">
+                                  <p className="text-xs text-slate-500">선금 (70%)</p>
+                                  <p className="text-sm font-bold text-green-700">
+                                    {/* @ts-ignore */}
+                                    {((request.deposit_amount || 0) / request.request_items.length).toLocaleString('vi-VN')} VND
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="text-xs text-green-700 space-y-1 border-t border-green-200 pt-2">
                               {item.user_selected_options.capacity && (
                                 <p>{t('mypage.selectCapacity')}: {item.user_selected_options.capacity}</p>
                               )}
@@ -602,6 +629,27 @@ export default function MyPage() {
                     )
                   })}
                 </div>
+
+                {/* Checkout Button for Request */}
+                {request.status === 'reviewed' && (
+                  <div className="mt-6 pt-6 border-t border-slate-100 flex flex-col sm:flex-row justify-end items-center gap-4">
+                    <div className="text-right">
+                      <p className="text-xs text-slate-500 mb-1">총 결제 예정 금액 (배송비 별도)</p>
+                      <p className="text-2xl font-black text-slate-900">
+                        {request.request_items.reduce((sum, item) => {
+                          const qty = itemSelections[item.id]?.quantity || item.user_quantity || 1
+                          return sum + (item.admin_price || 0) * qty
+                        }, 0).toLocaleString('vi-VN')} VND
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => router.push(`/checkout?requestId=${request.id}`)}
+                      className="w-full sm:w-auto px-8 py-4 bg-indigo-600 text-white text-lg font-bold rounded-xl hover:bg-indigo-700 shadow-lg transition-all active:scale-95"
+                    >
+                      결제하기
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

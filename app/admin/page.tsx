@@ -12,6 +12,9 @@ interface Request {
   status: 'pending' | 'reviewed' | 'ordered'
   created_at: string
   representative_title: string
+  request_items: {
+    item_status: string
+  }[]
 }
 
 export default function AdminDashboard() {
@@ -127,22 +130,39 @@ export default function AdminDashboard() {
     }
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (request: Request) => {
+    const { status, request_items } = request
+
+    // 상태 로직 계산
+    let displayStatus: string = status
+    if (status === 'pending') {
+      // 대기중인데 아이템 중에 하나라도 'pending'이 아닌 것(승인/거절 등)이 있으면 '검토중'으로 표시
+      const isReviewing = request_items?.some(item => item.item_status && item.item_status !== 'pending')
+      if (isReviewing) {
+        displayStatus = 'reviewing'
+      }
+    }
+
     const styles = {
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+      reviewing: 'bg-purple-100 text-purple-800 border-purple-300',
       reviewed: 'bg-blue-100 text-blue-800 border-blue-300',
       ordered: 'bg-green-100 text-green-800 border-green-300',
     }
     const labels = {
       pending: '대기중',
+      reviewing: '검토중',
       reviewed: '승인완료',
       ordered: '주문완료',
     }
+
+    const statusKey = displayStatus as keyof typeof styles
+
     return (
       <span
-        className={`px-2.5 py-1 text-xs font-bold rounded-md border ${styles[status as keyof typeof styles] || styles.pending}`}
+        className={`px-2.5 py-1 text-xs font-bold rounded-md border ${styles[statusKey] || styles.pending}`}
       >
-        {labels[status as keyof typeof labels] || status}
+        {labels[statusKey] || displayStatus}
       </span>
     )
   }
@@ -335,7 +355,7 @@ export default function AdminDashboard() {
                         {request.representative_title}
                       </td>
                       <td className="px-4 py-3">
-                        {getStatusBadge(request.status)}
+                        {getStatusBadge(request)}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button
