@@ -1,12 +1,20 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getRequestDetails } from '../actions/admin'
 import { submitManualOrder } from '../actions/payment' // Updated action
 import { createClient } from '../lib/supabase/client'
 
 export default function CheckoutPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+            <CheckoutContent />
+        </Suspense>
+    )
+}
+
+function CheckoutContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const requestId = searchParams.get('requestId')
@@ -26,8 +34,8 @@ export default function CheckoutPage() {
 
     useEffect(() => {
         if (!requestId) {
-            alert('잘못된 접근입니다.')
-            router.back()
+            // 초기 렌더링 시에는 requestId가 없을 수 있으므로 loading 상태에서 처리하거나
+            // Suspense가 해결해줌. 하지만 확실히 하기 위해 체크.
             return
         }
         loadData()
