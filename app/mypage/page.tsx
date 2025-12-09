@@ -588,18 +588,14 @@ export default function MyPage() {
                               <div>
                                 <p className="text-xs font-bold text-green-800 mb-1">{t('mypage.purchaseRequested')}</p>
                                 <p className="text-xs text-green-600 font-medium">
-                                  {/* @ts-ignore */}
                                   {request.payment_status === 'deposit_pending' ? '선금 입금 확인 중입니다.' :
-                                    /* @ts-ignore */
                                     request.payment_status === 'deposit_paid' ? '선금 입금 완료 / 배송 준비중' : '주문 접수됨'}
                                 </p>
                               </div>
-                              {/* @ts-ignore */}
                               {request.deposit_amount && (
                                 <div className="text-right">
                                   <p className="text-xs text-slate-500">선금 (70%)</p>
                                   <p className="text-sm font-bold text-green-700">
-                                    {/* @ts-ignore */}
                                     {((request.deposit_amount || 0) / request.request_items.length).toLocaleString('vi-VN')} VND
                                   </p>
                                 </div>
