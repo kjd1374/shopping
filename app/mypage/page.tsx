@@ -13,6 +13,7 @@ interface RequestItem {
   og_title: string
   og_image: string | null
   admin_price: number | null
+  admin_options: { name: string; price: number }[] | null
   admin_capacity: string | null
   admin_color: string | null
   admin_etc: string | null
@@ -43,6 +44,7 @@ export default function MyPage() {
     color?: string
     etc?: string
     quantity: number
+    selectedOptionIndex?: number // For new option system
   }>>({})
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const router = useRouter()
@@ -82,6 +84,7 @@ export default function MyPage() {
           og_title,
           og_image,
           admin_price,
+          admin_options,
           admin_capacity,
           admin_color,
           admin_etc,
@@ -118,16 +121,25 @@ export default function MyPage() {
         color?: string
         etc?: string
         quantity: number
+        selectedOptionIndex?: number
       }> = {}
 
       requestsData.forEach(request => {
         request.request_items.forEach(item => {
+          // 이미 선택된 옵션이 있는 경우
           if (item.user_selected_options) {
+            // 새로운 옵션 시스템 (admin_options) 사용 시
+            let optionIndex = -1;
+            if (item.admin_options && item.user_selected_options.optionName) {
+              optionIndex = item.admin_options.findIndex(opt => opt.name === item.user_selected_options!.optionName)
+            }
+
             initialSelections[item.id] = {
               capacity: item.user_selected_options.capacity,
               color: item.user_selected_options.color,
               etc: item.user_selected_options.etc,
               quantity: item.user_quantity || 1,
+              selectedOptionIndex: optionIndex !== -1 ? optionIndex : undefined
             }
           } else {
             initialSelections[item.id] = {
@@ -232,14 +244,81 @@ export default function MyPage() {
     }
   }
 
+
+
+  const handleNewOptionSelect = (itemId: string, index: number) => {
+    setItemSelections(prev => ({
+      ...prev,
+      [itemId]: {
+        ...prev[itemId],
+        selectedOptionIndex: index
+      }
+    }))
+  }
+
+  const handleRequestCheckout = async (request: Request) => {
+    // 1. 모든 아이템에 대해 옵션 저장 실행
+    for (const item of request.request_items) {
+      // 구매 가능한 상태인 아이템만 처리 (approved or legacy approved)
+      const isApproved = item.item_status === 'approved' || (!item.item_status && item.is_buyable !== false)
+      if (!isApproved) continue
+
+      const selection = itemSelections[item.id]
+      const selectedOptions: Record<string, string> = {}
+
+      if (item.admin_options && item.admin_options.length > 0) {
+        // 신규 옵션 시스템
+        if (selection?.selectedOptionIndex === undefined || selection.selectedOptionIndex < 0) {
+          alert(`'${item.og_title}' 상품의 옵션을 선택해주세요.`)
+          return
+        }
+        const selectedOpt = item.admin_options[selection.selectedOptionIndex]
+        selectedOptions.optionName = selectedOpt.name
+        selectedOptions.priceStr = selectedOpt.price.toString()
+      } else {
+        // 레거시 옵션 시스템
+        if (selection) {
+          if (selection.capacity) selectedOptions.capacity = selection.capacity
+          if (selection.color) selectedOptions.color = selection.color
+          if (selection.etc) selectedOptions.etc = selection.etc
+        }
+      }
+
+      // 저장 실행
+      const result = await confirmOrder(
+        item.id,
+        selectedOptions,
+        selection?.quantity || item.user_quantity || 1
+      )
+
+      if (!result.success) {
+        alert(`아이템(${item.og_title}) 저장 실패: ${result.error}`)
+        return
+      }
+    }
+
+    // 2. 모두 성공하면 결제 페이지로 이동
+    router.push(`/checkout?requestId=${request.id}`)
+  }
+
   const parseOptions = (optionsString: string | null): string[] => {
     if (!optionsString) return []
     return optionsString.split(',').map(s => s.trim()).filter(s => s.length > 0)
   }
 
   const calculateTotal = (item: RequestItem): number => {
-    if (!item.admin_price) return 0
     const quantity = itemSelections[item.id]?.quantity || item.user_quantity || 1
+
+    // 신규 옵션 시스템 가격
+    if (item.admin_options && item.admin_options.length > 0) {
+      const idx = itemSelections[item.id]?.selectedOptionIndex
+      if (idx !== undefined && idx >= 0 && item.admin_options[idx]) {
+        return item.admin_options[idx].price * quantity
+      }
+      return 0
+    }
+
+    if (!item.admin_price) return 0
     return item.admin_price * quantity
   }
 
@@ -472,88 +551,117 @@ export default function MyPage() {
                         {/* 승인완료 상태일 때 옵션 선택 UI */}
                         {isReviewed && isApproved && (
                           <div className="space-y-4 mb-4">
-                            {/* 용량 선택 */}
-                            {capacityOptions.length > 0 && (
-                              <div>
+                            {/* 신규 옵션 및 가격 선택 */}
+                            {item.admin_options && item.admin_options.length > 0 ? (
+                              <div className="mb-4">
                                 <label className="block text-xs font-bold text-slate-700 mb-2">
-                                  {t('mypage.selectCapacity')}
+                                  옵션 선택 (필수)
                                 </label>
-                                {capacityOptions.length === 1 ? (
-                                  <p className="text-sm text-slate-600">{capacityOptions[0]}</p>
-                                ) : (
-                                  <div className="flex flex-wrap gap-2">
-                                    {capacityOptions.map((option) => (
-                                      <button
-                                        key={option}
-                                        onClick={() => handleOptionChange(item.id, 'capacity', option)}
-                                        className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all ${itemSelections[item.id]?.capacity === option
-                                          ? 'bg-indigo-600 text-white border-indigo-600'
-                                          : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400'
-                                          }`}
-                                      >
-                                        {option}
-                                      </button>
-                                    ))}
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                  {item.admin_options.map((option, idx) => (
+                                    <button
+                                      key={idx}
+                                      onClick={() => handleNewOptionSelect(item.id, idx)}
+                                      className={`p-3 text-left rounded-lg border-2 transition-all ${itemSelections[item.id]?.selectedOptionIndex === idx
+                                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-md transform scale-[1.02]'
+                                        : 'bg-white text-slate-700 border-slate-200 hover:border-indigo-300'
+                                        }`}
+                                    >
+                                      <div className="text-sm font-bold mb-1">{option.name}</div>
+                                      <div className={`text-xs ${itemSelections[item.id]?.selectedOptionIndex === idx ? 'text-indigo-100' : 'text-slate-500'
+                                        }`}>
+                                        {option.price.toLocaleString('vi-VN')} VND
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                {/* 용량 선택 (Legacy) */}
+                                {capacityOptions.length > 0 && (
+                                  <div>
+                                    <label className="block text-xs font-bold text-slate-700 mb-2">
+                                      {t('mypage.selectCapacity')}
+                                    </label>
+                                    {capacityOptions.length === 1 ? (
+                                      <p className="text-sm text-slate-600">{capacityOptions[0]}</p>
+                                    ) : (
+                                      <div className="flex flex-wrap gap-2">
+                                        {capacityOptions.map((option) => (
+                                          <button
+                                            key={option}
+                                            onClick={() => handleOptionChange(item.id, 'capacity', option)}
+                                            className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all ${itemSelections[item.id]?.capacity === option
+                                              ? 'bg-indigo-600 text-white border-indigo-600'
+                                              : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400'
+                                              }`}
+                                          >
+                                            {option}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
                                 )}
-                              </div>
-                            )}
 
-                            {/* 색상 선택 */}
-                            {colorOptions.length > 0 && (
-                              <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-2">
-                                  {t('mypage.selectColor')}
-                                </label>
-                                {colorOptions.length === 1 ? (
-                                  <p className="text-sm text-slate-600">{colorOptions[0]}</p>
-                                ) : (
-                                  <div className="flex flex-wrap gap-2">
-                                    {colorOptions.map((option) => (
-                                      <button
-                                        key={option}
-                                        onClick={() => handleOptionChange(item.id, 'color', option)}
-                                        className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all ${itemSelections[item.id]?.color === option
-                                          ? 'bg-indigo-600 text-white border-indigo-600'
-                                          : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400'
-                                          }`}
-                                      >
-                                        {option}
-                                      </button>
-                                    ))}
+                                {/* 색상 선택 (Legacy) */}
+                                {colorOptions.length > 0 && (
+                                  <div>
+                                    <label className="block text-xs font-bold text-slate-700 mb-2">
+                                      {t('mypage.selectColor')}
+                                    </label>
+                                    {colorOptions.length === 1 ? (
+                                      <p className="text-sm text-slate-600">{colorOptions[0]}</p>
+                                    ) : (
+                                      <div className="flex flex-wrap gap-2">
+                                        {colorOptions.map((option) => (
+                                          <button
+                                            key={option}
+                                            onClick={() => handleOptionChange(item.id, 'color', option)}
+                                            className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all ${itemSelections[item.id]?.color === option
+                                              ? 'bg-indigo-600 text-white border-indigo-600'
+                                              : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400'
+                                              }`}
+                                          >
+                                            {option}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
                                 )}
-                              </div>
-                            )}
 
-                            {/* 기타 옵션 */}
-                            {etcOptions.length > 0 && (
-                              <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-2">
-                                  {t('mypage.selectEtc')}
-                                </label>
-                                {etcOptions.length === 1 ? (
-                                  <p className="text-sm text-slate-600">{etcOptions[0]}</p>
-                                ) : (
-                                  <div className="flex flex-wrap gap-2">
-                                    {etcOptions.map((option) => (
-                                      <button
-                                        key={option}
-                                        onClick={() => handleOptionChange(item.id, 'etc', option)}
-                                        className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all ${itemSelections[item.id]?.etc === option
-                                          ? 'bg-indigo-600 text-white border-indigo-600'
-                                          : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400'
-                                          }`}
-                                      >
-                                        {option}
-                                      </button>
-                                    ))}
+                                {/* 기타 옵션 (Legacy) */}
+                                {etcOptions.length > 0 && (
+                                  <div>
+                                    <label className="block text-xs font-bold text-slate-700 mb-2">
+                                      {t('mypage.selectEtc')}
+                                    </label>
+                                    {etcOptions.length === 1 ? (
+                                      <p className="text-sm text-slate-600">{etcOptions[0]}</p>
+                                    ) : (
+                                      <div className="flex flex-wrap gap-2">
+                                        {etcOptions.map((option) => (
+                                          <button
+                                            key={option}
+                                            onClick={() => handleOptionChange(item.id, 'etc', option)}
+                                            className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-all ${itemSelections[item.id]?.etc === option
+                                              ? 'bg-indigo-600 text-white border-indigo-600'
+                                              : 'bg-white text-slate-700 border-slate-300 hover:border-indigo-400'
+                                              }`}
+                                          >
+                                            {option}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
                                 )}
-                              </div>
+                              </>
                             )}
 
-                            {/* 수량 조절 */}
+                            {/* 수량 조절 (Common) */}
                             <div>
                               <label className="block text-xs font-bold text-slate-700 mb-2">
                                 {t('mypage.quantity')}
@@ -577,20 +685,26 @@ export default function MyPage() {
                               </div>
                             </div>
 
-                            {/* 가격 계산기 */}
-                            {item.admin_price && (
-                              <div className="p-4 bg-indigo-50 border-2 border-indigo-200 rounded-xl">
-                                <div className="flex items-center justify-between">
-                                  <span className="text-sm font-bold text-slate-700">{t('mypage.estimatedTotal')}</span>
-                                  <span className="text-2xl font-black text-indigo-600">
-                                    {totalPrice.toLocaleString('vi-VN')} VND
-                                  </span>
-                                </div>
-                                <p className="text-xs text-slate-500 mt-1 text-right">
-                                  {item.admin_price.toLocaleString('vi-VN')} VND × {itemSelections[item.id]?.quantity || 1}개
-                                </p>
+                            {/* 가격 계산기 (Common - Updated for Dynamic Options) */}
+                            <div className="p-4 bg-indigo-50 border-2 border-indigo-200 rounded-xl">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-bold text-slate-700">{t('mypage.estimatedTotal')}</span>
+                                <span className="text-2xl font-black text-indigo-600">
+                                  {calculateTotal(item).toLocaleString('vi-VN')} VND
+                                </span>
                               </div>
-                            )}
+                              <p className="text-xs text-slate-500 mt-1 text-right">
+                                {item.admin_options && item.admin_options.length > 0 ? (
+                                  itemSelections[item.id]?.selectedOptionIndex !== undefined ? (
+                                    `${item.admin_options[itemSelections[item.id]!.selectedOptionIndex!].price.toLocaleString('vi-VN')} VND × ${itemSelections[item.id]?.quantity || 1}개`
+                                  ) : '옵션을 선택해주세요'
+                                ) : (
+                                  item.admin_price ? (
+                                    `${item.admin_price.toLocaleString('vi-VN')} VND × ${itemSelections[item.id]?.quantity || 1}개`
+                                  ) : '가격 정보 없음'
+                                )}
+                              </p>
+                            </div>
 
                             {/* 구매 요청하기 버튼 */}
                             <button

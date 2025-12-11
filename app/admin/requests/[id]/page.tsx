@@ -11,6 +11,7 @@ interface RequestItem {
   og_image: string | null
   og_title: string
   admin_price: number | null
+  admin_options: { name: string; price: number }[] | null
   admin_capacity: string | null
   admin_color: string | null
   admin_etc: string | null
@@ -30,6 +31,7 @@ interface Request {
 
 interface ItemUpdate {
   price: string
+  options: { name: string; price: string }[]
   capacity: string
   color: string
   etc: string
@@ -67,6 +69,10 @@ export default function RequestDetailPage() {
         result.items.forEach((item: RequestItem) => {
           initialUpdates[item.id] = {
             price: item.admin_price ? item.admin_price.toLocaleString('ko-KR').replace(/,/g, '') : '',
+            options: item.admin_options?.map(opt => ({
+              name: opt.name,
+              price: opt.price.toLocaleString('ko-KR')
+            })) || [],
             capacity: item.admin_capacity || '',
             color: item.admin_color || '',
             etc: item.admin_etc || '',
@@ -86,7 +92,7 @@ export default function RequestDetailPage() {
     }
   }
 
-  const handleItemChange = (itemId: string, field: keyof ItemUpdate, value: string | boolean) => {
+  const handleItemChange = (itemId: string, field: keyof ItemUpdate, value: any) => {
     setItemUpdates(prev => ({
       ...prev,
       [itemId]: {
@@ -94,6 +100,41 @@ export default function RequestDetailPage() {
         [field]: value,
       },
     }))
+  }
+
+  const handleOptionChange = (itemId: string, index: number, field: 'name' | 'price', value: string) => {
+    setItemUpdates(prev => {
+      const currentOptions = [...(prev[itemId]?.options || [])]
+      currentOptions[index] = {
+        ...currentOptions[index],
+        [field]: field === 'price' ? formatPrice(value) : value
+      }
+      return {
+        ...prev,
+        [itemId]: { ...prev[itemId], options: currentOptions }
+      }
+    })
+  }
+
+  const handleAddOption = (itemId: string) => {
+    setItemUpdates(prev => {
+      const currentOptions = [...(prev[itemId]?.options || [])]
+      currentOptions.push({ name: '', price: '' })
+      return {
+        ...prev,
+        [itemId]: { ...prev[itemId], options: currentOptions }
+      }
+    })
+  }
+
+  const handleRemoveOption = (itemId: string, index: number) => {
+    setItemUpdates(prev => {
+      const currentOptions = prev[itemId]?.options.filter((_, i) => i !== index) || []
+      return {
+        ...prev,
+        [itemId]: { ...prev[itemId], options: currentOptions }
+      }
+    })
   }
 
   const formatPrice = (value: string): string => {
@@ -110,11 +151,30 @@ export default function RequestDetailPage() {
       // 모든 아이템 업데이트
       const updatePromises = Object.entries(itemUpdates).map(([itemId, data]) => {
         const price = data.price.trim() ? parseFloat(data.price.replace(/,/g, '')) : null
+
+        // 옵션 데이터 변환 (빈 값 제외)
+        const options = data.options
+          .filter(opt => opt.name.trim() && opt.price.trim())
+          .map(opt => ({
+            name: opt.name.trim(),
+            price: parseInt(opt.price.replace(/,/g, ''))
+          }))
+
         const capacity = data.capacity.trim() || null
         const color = data.color.trim() || null
         const etc = data.etc.trim() || null
         const rerequestNote = data.rerequestNote.trim() || null
-        return updateRequestItem(itemId, price, capacity, color, etc, rerequestNote, data.itemStatus)
+
+        return updateRequestItem(
+          itemId,
+          price,
+          options.length > 0 ? options : null,
+          capacity,
+          color,
+          etc,
+          rerequestNote,
+          data.itemStatus
+        )
       })
 
       const results = await Promise.all(updatePromises)
@@ -245,9 +305,50 @@ export default function RequestDetailPage() {
                 {/* 그리드 레이아웃 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* 판매가 (VND) */}
+                  {/* 옵션 및 가격 설정 (New) */}
+                  <div className="md:col-span-2 space-y-3">
+                    <label className="block text-sm font-bold text-slate-700">
+                      옵션별 가격 설정 (권장)
+                    </label>
+                    <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-3">
+                      {itemUpdates[item.id]?.options.map((option, idx) => (
+                        <div key={idx} className="flex gap-2 items-center">
+                          <input
+                            type="text"
+                            placeholder="옵션명 (예: 100ml)"
+                            value={option.name}
+                            onChange={(e) => handleOptionChange(item.id, idx, 'name', e.target.value)}
+                            className="flex-1 px-3 py-2 text-sm border rounded focus:outline-none focus:border-indigo-500"
+                          />
+                          <input
+                            type="text"
+                            placeholder="가격"
+                            value={option.price}
+                            onChange={(e) => handleOptionChange(item.id, idx, 'price', e.target.value)}
+                            className="w-32 px-3 py-2 text-sm border rounded focus:outline-none focus:border-indigo-500 text-right"
+                          />
+                          <span className="text-xs text-slate-500">VND</span>
+                          <button
+                            onClick={() => handleRemoveOption(item.id, idx)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded"
+                          >
+                            ✖
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => handleAddOption(item.id)}
+                        className="w-full py-2 text-sm font-bold text-indigo-600 border border-dashed border-indigo-300 rounded hover:bg-indigo-50"
+                      >
+                        + 옵션 추가
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 기본 판매가 (Legacy/Fallback) */}
                   <div className="md:col-span-2">
                     <label className="block text-sm font-bold text-slate-700 mb-2">
-                      판매가 (VND) <span className="text-red-500">*</span>
+                      기본 단가 (옵션 없을 시 적용)
                     </label>
                     <input
                       type="text"
@@ -259,53 +360,45 @@ export default function RequestDetailPage() {
                       placeholder="예: 500000"
                       className="w-full px-4 py-4 text-base rounded-lg border-2 border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
                     />
-                    {itemUpdates[item.id]?.price && (
-                      <p className="text-sm text-slate-500 mt-2">
-                        {parseInt(itemUpdates[item.id].price.replace(/,/g, '') || '0').toLocaleString('vi-VN')} VND
-                      </p>
-                    )}
                   </div>
 
-                  {/* 용량 옵션 */}
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">
-                      용량 옵션
-                    </label>
-                    <input
-                      type="text"
-                      value={itemUpdates[item.id]?.capacity || ''}
-                      onChange={(e) => handleItemChange(item.id, 'capacity', e.target.value)}
-                      placeholder="50ml, 100ml (콤마로 구분)"
-                      className="w-full px-4 py-4 text-base rounded-lg border-2 border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                    />
-                  </div>
-
-                  {/* 색상 옵션 */}
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">
-                      색상 옵션
-                    </label>
-                    <input
-                      type="text"
-                      value={itemUpdates[item.id]?.color || ''}
-                      onChange={(e) => handleItemChange(item.id, 'color', e.target.value)}
-                      placeholder="21호, 23호 (콤마로 구분)"
-                      className="w-full px-4 py-4 text-base rounded-lg border-2 border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                    />
-                  </div>
-
-                  {/* 기타 옵션 */}
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-2">
-                      기타 옵션
-                    </label>
-                    <input
-                      type="text"
-                      value={itemUpdates[item.id]?.etc || ''}
-                      onChange={(e) => handleItemChange(item.id, 'etc', e.target.value)}
-                      placeholder="예: 무향, 유기농"
-                      className="w-full px-4 py-4 text-base rounded-lg border-2 border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                    />
+                  {/* 레거시 문자열 옵션 (필요시 사용) */}
+                  <div className="md:col-span-2">
+                    <p className="text-xs font-bold text-slate-400 mb-2 cursor-pointer hover:text-slate-600" onClick={(e) => {
+                      const target = e.currentTarget.nextElementSibling;
+                      if (target) target.classList.toggle('hidden');
+                    }}>
+                      ▼ 구버전 옵션 입력창 열기 (단순 문자열)
+                    </p>
+                    <div className="hidden grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 mb-1">용량 (구버전)</label>
+                        <input
+                          type="text"
+                          value={itemUpdates[item.id]?.capacity || ''}
+                          onChange={(e) => handleItemChange(item.id, 'capacity', e.target.value)}
+                          className="w-full px-3 py-2 text-sm border rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 mb-1">색상 (구버전)</label>
+                        <input
+                          type="text"
+                          value={itemUpdates[item.id]?.color || ''}
+                          onChange={(e) => handleItemChange(item.id, 'color', e.target.value)}
+                          className="w-full px-3 py-2 text-sm border rounded"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 mb-1">기타 (구버전)</label>
+                        <input
+                          type="text"
+                          value={itemUpdates[item.id]?.etc || ''}
+                          onChange={(e) => handleItemChange(item.id, 'etc', e.target.value)}
+                          className="w-full px-3 py-2 text-sm border rounded"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   {/* 사용자 답변 확인 (정보 요청 상태일 때) */}
@@ -398,11 +491,29 @@ export default function RequestDetailPage() {
                 try {
                   const updatePromises = Object.entries(itemUpdates).map(([itemId, data]) => {
                     const price = data.price.trim() ? parseFloat(data.price.replace(/,/g, '')) : null
+
+                    const options = data.options
+                      .filter(opt => opt.name.trim() && opt.price.trim())
+                      .map(opt => ({
+                        name: opt.name.trim(),
+                        price: parseInt(opt.price.replace(/,/g, ''))
+                      }))
+
                     const capacity = data.capacity.trim() || null
                     const color = data.color.trim() || null
                     const etc = data.etc.trim() || null
                     const rerequestNote = data.rerequestNote.trim() || null
-                    return updateRequestItem(itemId, price, capacity, color, etc, rerequestNote, data.itemStatus)
+
+                    return updateRequestItem(
+                      itemId,
+                      price,
+                      options.length > 0 ? options : null,
+                      capacity,
+                      color,
+                      etc,
+                      rerequestNote,
+                      data.itemStatus
+                    )
                   })
 
                   const results = await Promise.all(updatePromises)
