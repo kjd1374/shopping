@@ -217,76 +217,14 @@ const translations: Record<Language, Record<string, string>> = {
     'checkout.alert.success': 'Đơn hàng đã được tiếp nhận! Vui lòng chuyển khoản vào tài khoản được hướng dẫn.',
     'checkout.alert.fail': 'Tiếp nhận đơn hàng thất bại: ',
     'checkout.alert.postcode': 'Tính năng tìm kiếm mã bưu điện sẽ được liên kết sau. Vui lòng nhập trực tiếp.',
-    'ranking.title.beauty': '🔥 Bảng xếp hạng Olive Young',
-    'ranking.title.fashion': '👗 Bảng xếp hạng Musinsa',
-    'ranking.top10': 'Top 10',
-    'ranking.empty': 'Không có dữ liệu xếp hạng.',
-    'ranking.fashion.empty': 'Bảng xếp hạng thời trang đang được chuẩn bị.',
-    'ranking.fetch': 'Lấy dữ liệu',
-    'ranking.button': 'Cái này!',
-    'ranking.updateOnlyBeauty': 'Hiện tại chỉ có thể cập nhật danh mục làm đẹp.',
-    'ranking.updateConfirm': 'Bạn có muốn cập nhật bảng xếp hạng Olive Young mới nhất không? (Mất khoảng 5-10 giây)',
-    'ranking.updateSuccess': 'Cập nhật hoàn tất!',
-    'ranking.updateFailed': 'Cập nhật thất bại',
-    'ranking.systemError': 'Đã xảy ra lỗi hệ thống',
-    'ranking.productClick': 'Vui lòng nhập tên sản phẩm hoặc dán URL vào ô nhập bên dưới.',
-    'language.products': 'sản phẩm',
-
-    // Request
-    'request.title': '📝 Tìm bất cứ thứ gì cho bạn',
-    'request.photo': 'Ảnh',
-    'request.productName': 'Tên sản phẩm/Từ khóa (Bắt buộc)',
-    'request.url': 'URL (Tùy chọn)',
-    'request.add': 'Thêm',
-    'request.processing': 'Đang xử lý...',
-    'request.submit': 'sản phẩm yêu cầu báo giá',
-    'request.submitting': 'Đang gửi...',
-    'request.success': '✅ Yêu cầu đã được tiếp nhận!',
-    'request.success.desc': 'Chúng tôi sẽ thông báo báo giá trong vòng 24 giờ.',
-    'request.addMore': 'Thêm yêu cầu',
-    'request.max': 'Chỉ có thể yêu cầu tối đa 7 sản phẩm.',
-    'request.enterName': 'Vui lòng nhập tên sản phẩm hoặc hình ảnh.',
-    'request.duplicate': 'URL này đã có trong danh sách.',
-    'request.fetchFailed': 'Không thể lấy thông tin.',
-    'request.error': 'Đã xảy ra lỗi',
-    'request.badge.photo': '📷 Ảnh',
-    'request.badge.url': 'URL',
-    'request.badge.text': 'Nhập trực tiếp',
-    'request.preview': 'Xem trước',
-    'request.thumbnail': 'Hình thu nhỏ',
-
-    // My Page
-    'mypage.title': 'Yêu cầu của tôi',
-    'mypage.main': 'Trang chủ',
-    'mypage.logout': 'Đăng xuất',
-    'mypage.empty': 'Bạn chưa có yêu cầu nào.',
-    'mypage.goRequest': 'Yêu cầu báo giá ngay',
-    'mypage.requestNum': 'Yêu cầu #',
-    'mypage.unitPrice': 'Đơn giá',
-    'mypage.cantBuy': '🚫 Không thể mua',
-    'mypage.cantBuyDesc': 'Quản trị viên đã đánh dấu sản phẩm này không thể mua.',
-    'mypage.adminNote': '⚠️ Thông báo từ quản trị viên',
-    'mypage.selectCapacity': 'Chọn dung tích',
-    'mypage.selectColor': 'Chọn màu sắc',
-    'mypage.selectEtc': 'Tùy chọn khác',
-    'mypage.quantity': 'Số lượng',
-    'mypage.estimatedTotal': 'Tổng tiền dự kiến',
-    'mypage.requestPurchase': 'Yêu cầu mua hàng',
-    'mypage.purchaseRequested': '✅ Đã yêu cầu mua',
-    'mypage.total': 'Tổng cộng',
-    'mypage.selectOption': 'Vui lòng chọn tùy chọn.',
-    'mypage.requestSuccess': 'Yêu cầu mua hàng thành công!',
-    'mypage.requestFail': 'Yêu cầu mua hàng thất bại',
-    'mypage.status.pending': 'Đang chờ',
-    'mypage.status.reviewed': 'Đã duyệt',
-    'mypage.status.ordered': 'Đã đặt hàng',
   },
 }
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>('vi') // 기본값 베트남어
 
-  const t = (key: string): string => {
+export const LanguageProvider = ({ children }: { children: ReactNode }) => {
+  const [language, setLanguage] = useState<Language>('ko')
+
+  const t = (key: string) => {
     return translations[language][key] || key
   }
 
@@ -297,10 +235,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   )
 }
 
-export function useLanguage() {
+export const useLanguage = () => {
   const context = useContext(LanguageContext)
-  if (!context) {
-    throw new Error('useLanguage must be used within LanguageProvider')
+  if (context === undefined) {
+    throw new Error('useLanguage must be used within a LanguageProvider')
   }
   return context
 }
