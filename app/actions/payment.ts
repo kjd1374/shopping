@@ -25,7 +25,7 @@ export async function submitManualOrder({
         const supabase = createClient()
 
         // 1. 요청 상태 업데이트 및 배송지 저장
-        const { error: updateError } = await supabase
+        const { data, error: updateError } = await supabase
             .from('requests')
             .update({
                 status: 'ordered', // 일단 ordered로 변경하여 My Page에서 구분
@@ -35,8 +35,12 @@ export async function submitManualOrder({
                 final_amount: finalAmount
             })
             .eq('id', requestId)
+            .select()
 
         if (updateError) throw updateError
+        if (!data || data.length === 0) {
+            throw new Error('주문 상태 업데이트에 실패했습니다. (권한 부족 또는 요청을 찾을 수 없음)')
+        }
 
         // 2. (Optional) 알림 시스템이 있다면 관리자에게 알림 전송
 
