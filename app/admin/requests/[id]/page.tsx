@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { getRequestDetails, updateRequestItem, confirmRequest } from '../../../actions/admin'
+import { confirmDeposit } from '../../../actions/payment'
 
 interface RequestItem {
   id: string
@@ -26,6 +27,10 @@ interface Request {
   id: string
   user_id: string | null
   status: 'pending' | 'reviewed' | 'ordered'
+  payment_status: 'deposit_pending' | 'deposit_paid' | null
+  deposit_amount: number | null
+  final_amount: number | null
+  shipping_address: any | null
   created_at: string
 }
 
@@ -170,6 +175,7 @@ export default function RequestDetailPage() {
           price,
           options.length > 0 ? options : null,
           capacity,
+          capacity,
           color,
           etc,
           rerequestNote,
@@ -198,6 +204,21 @@ export default function RequestDetailPage() {
       alert('저장 중 오류가 발생했습니다.')
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleConfirmDeposit = async () => {
+    if (!confirm('입금을 확인하였습니까? 상태를 [입금 완료]로 변경합니다.')) return
+
+    setSaving(true)
+    const result = await confirmDeposit(requestId)
+    setSaving(false)
+
+    if (result.success) {
+      alert('입금 확인 처리가 완료되었습니다.')
+      fetchDetails() // 새로고침
+    } else {
+      alert('처리 실패: ' + result.error)
     }
   }
 
@@ -247,6 +268,66 @@ export default function RequestDetailPage() {
             </span>
           </div>
         </div>
+
+        {/* 입금 및 배송 정보 (주문 완료 상태일 때만) */}
+        {request.status === 'ordered' && (
+          <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-6 mb-8">
+            <h2 className="text-lg font-bold text-indigo-900 mb-4 flex items-center gap-2">
+              📦 주문 및 결제 정보
+              {request.payment_status === 'deposit_paid' && (
+                <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">입금완료 ✅</span>
+              )}
+              {request.payment_status === 'deposit_pending' && (
+                <span className="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">입금대기 ⏳</span>
+              )}
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 결제 정보 */}
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wider">결제 내역</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">청구된 선금 (70%)</span>
+                    <span className="font-bold text-indigo-600">{request.deposit_amount?.toLocaleString()} VND</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-600">총 주문 금액</span>
+                    <span className="font-medium">{request.final_amount?.toLocaleString()} VND</span>
+                  </div>
+                  <div className="pt-3 mt-3 border-t border-slate-100 flex justify-between items-center">
+                    <span className="text-slate-600 font-bold">입금 상태</span>
+                    {request.payment_status === 'deposit_pending' ? (
+                      <button
+                        onClick={handleConfirmDeposit}
+                        disabled={saving}
+                        className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm"
+                      >
+                        입금 확인 처리 (Click)
+                      </button>
+                    ) : (
+                      <span className="text-green-600 font-bold">확인 완료</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* 배송지 정보 */}
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wider">배송지 정보</h3>
+                {request.shipping_address ? (
+                  <div className="space-y-1 text-sm text-slate-700">
+                    <p><span className="font-bold text-slate-900">{request.shipping_address.name}</span> ({request.shipping_address.phone})</p>
+                    <p>{request.shipping_address.address} {request.shipping_address.detailAddress}</p>
+                    <p className="text-slate-500">{request.shipping_address.zipcode}</p>
+                  </div>
+                ) : (
+                  <p className="text-red-500 text-sm">배송지 정보가 없습니다.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 아이템 리스트 */}
         <div className="space-y-6">
