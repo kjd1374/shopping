@@ -108,6 +108,23 @@ export default function MyPage() {
       setErrorMsg(`데이터 불러오기 실패: ${error.message} (Code: ${error.code})`)
     } else {
       const requestsData = (data as Request[]) || []
+
+      // 데이터 정제 (admin_options 파싱)
+      requestsData.forEach(request => {
+        request.request_items.forEach(item => {
+          if (typeof item.admin_options === 'string') {
+            try {
+              item.admin_options = JSON.parse(item.admin_options)
+            } catch (e) {
+              item.admin_options = []
+            }
+          }
+          if (!Array.isArray(item.admin_options)) {
+            item.admin_options = []
+          }
+        })
+      })
+
       setRequests(requestsData)
       if (requestsData.length === 0) {
         // Double check just in case
