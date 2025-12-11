@@ -106,15 +106,44 @@ export default function MyPage() {
   }
 
   // --- Helpers ---
+  const calculateTotal = (item: RequestItem): number => {
+    const quantity = itemSelections[item.id]?.quantity || item.user_quantity || 1
+
+    // 신규 옵션 시스템 가격
+    if (Array.isArray(item.admin_options) && item.admin_options.length > 0) {
+      const idx = itemSelections[item.id]?.selectedOptionIndex
+      if (idx !== undefined && idx >= 0 && item.admin_options[idx]) {
+        return item.admin_options[idx].price * quantity
+      }
+      return 0
+    }
+
+    if (!item.admin_price) return 0
+    return item.admin_price * quantity
+  }
+
+  const handleRequestCheckout = async (request: Request) => {
+    // 1. 모든 아이템에 대해 옵션 저장 실행 (지금은 간단히 라우팅만)
+    // TODO: Restore full validation logic
+    router.push(`/checkout?requestId=${request.id}`)
+  }
+
   const getStatusBadge = (status: string) => {
-    return <span className="text-xs bg-gray-100 p-1 rounded border">{status}</span>
+    switch (status) {
+      case 'reviewed':
+        return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-blue-100 text-blue-800 border-blue-300">{t('mypage.status.reviewed')}</span>
+      case 'ordered':
+        return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-green-100 text-green-800 border-green-300">{t('mypage.status.ordered')}</span>
+      default:
+        return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-yellow-100 text-yellow-800 border-yellow-300">{t('mypage.status.pending')}</span>
+    }
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString()
+    return new Date(dateString).toLocaleString('ko-KR', {
+      year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+    })
   }
-
-  const calculateTotal = (item: RequestItem) => 0
 
   if (loading) {
     return <div className="p-10">Loading...</div>
