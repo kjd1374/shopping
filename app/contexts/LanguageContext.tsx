@@ -88,6 +88,8 @@ const translations: Record<Language, Record<string, string>> = {
     'mypage.status.reviewed': '승인완료',
     'mypage.status.ordered': '주문접수',
     'mypage.checkout': '결제하기',
+    'mypage.section.ongoing': '🚀 진행 중인 주문',
+    'mypage.section.history': '📋 견적 요청 내역',
     // Checkout
     'checkout.title': '주문서 작성',
     'checkout.orderItems': '주문 상품',
