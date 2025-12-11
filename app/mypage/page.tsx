@@ -94,7 +94,58 @@ export default function MyPage() {
     if (error) {
       setErrorMsg(error.message)
     } else {
-      setRequests(data as any)
+      const requestsData = (data as any[]) || []
+
+      // 1. 데이터 정제 (admin_options 파싱)
+      requestsData.forEach(request => {
+        request.request_items.forEach((item: any) => {
+          if (typeof item.admin_options === 'string') {
+            try {
+              item.admin_options = JSON.parse(item.admin_options)
+            } catch (e) {
+              item.admin_options = []
+            }
+          }
+          if (!Array.isArray(item.admin_options)) {
+            item.admin_options = []
+          }
+        })
+      })
+
+      setRequests(requestsData)
+
+      // 2. 초기 선택값 설정
+      const initialSelections: Record<string, {
+        capacity?: string
+        color?: string
+        etc?: string
+        quantity: number
+        selectedOptionIndex?: number
+      }> = {}
+
+      requestsData.forEach(request => {
+        request.request_items.forEach((item: any) => {
+          if (item.user_selected_options) {
+            let optionIndex = -1;
+            if (item.admin_options && item.user_selected_options.optionName) {
+              optionIndex = item.admin_options.findIndex((opt: any) => opt.name === item.user_selected_options.optionName)
+            }
+
+            initialSelections[item.id] = {
+              capacity: item.user_selected_options.capacity,
+              color: item.user_selected_options.color,
+              etc: item.user_selected_options.etc,
+              quantity: item.user_quantity || 1,
+              selectedOptionIndex: optionIndex !== -1 ? optionIndex : undefined
+            }
+          } else {
+            initialSelections[item.id] = {
+              quantity: item.user_quantity || 1,
+            }
+          }
+        })
+      })
+      setItemSelections(initialSelections)
     }
     setLoading(false)
   }
@@ -103,6 +154,45 @@ export default function MyPage() {
     await signOut()
     router.push('/login')
     router.refresh()
+  }
+
+  const handleOptionChange = (itemId: string, field: 'capacity' | 'color' | 'etc', value: string) => {
+    setItemSelections(prev => ({
+      ...prev,
+      [itemId]: {
+        ...prev[itemId],
+        [field]: value,
+      },
+    }))
+  }
+
+  const handleQuantityChange = (itemId: string, delta: number) => {
+    setItemSelections(prev => {
+      const current = prev[itemId]?.quantity || 1
+      const newQuantity = Math.max(1, current + delta)
+      return {
+        ...prev,
+        [itemId]: {
+          ...prev[itemId],
+          quantity: newQuantity,
+        },
+      }
+    })
+  }
+
+  const handleNewOptionSelect = (itemId: string, index: number) => {
+    setItemSelections(prev => ({
+      ...prev,
+      [itemId]: {
+        ...prev[itemId],
+        selectedOptionIndex: index
+      }
+    }))
+  }
+
+  const parseOptions = (optionsString: string | null): string[] => {
+    if (!optionsString) return []
+    return optionsString.split(',').map(s => s.trim()).filter(s => s.length > 0)
   }
 
   // --- Helpers ---
