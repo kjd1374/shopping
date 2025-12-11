@@ -328,41 +328,19 @@ export default function MyPage() {
   }
 
   const parseOptions = (optionsString: string | null): string[] => {
-    if (!optionsString) return []
-    return optionsString.split(',').map(s => s.trim()).filter(s => s.length > 0)
+    return []
   }
 
   const calculateTotal = (item: RequestItem): number => {
-    const quantity = itemSelections[item.id]?.quantity || item.user_quantity || 1
-
-    // 신규 옵션 시스템 가격
-    if (Array.isArray(item.admin_options) && item.admin_options.length > 0) {
-      const idx = itemSelections[item.id]?.selectedOptionIndex
-      if (idx !== undefined && idx >= 0 && item.admin_options[idx]) {
-        return item.admin_options[idx].price * quantity
-      }
-      return 0
-    }
-
-    if (!item.admin_price) return 0
-    return item.admin_price * quantity
+    return item.admin_price || 0
   }
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'reviewed':
-        return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-blue-100 text-blue-800 border-blue-300">{t('mypage.status.reviewed')}</span>
-      case 'ordered':
-        return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-green-100 text-green-800 border-green-300">{t('mypage.status.ordered')}</span>
-      default:
-        return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-yellow-100 text-yellow-800 border-yellow-300">{t('mypage.status.pending')}</span>
-    }
+    return <span className="text-xs">{status}</span>
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('ko-KR', {
-      year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
-    })
+    return dateString
   }
 
   return (
