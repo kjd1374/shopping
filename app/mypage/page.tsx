@@ -780,7 +780,62 @@ export default function MyPage() {
                   })}
                 </div>
 
-                {/* 결제 진행 버튼 (Request Level) */}
+                {/* 주문 완료 (입금 안내) UI */}
+                {request.status === 'ordered' && (
+                  <div className="mt-6 p-5 bg-indigo-50 rounded-xl border border-indigo-100">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 bg-white rounded-lg shadow-sm">
+                        <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-indigo-900 mb-1">
+                          {request.payment_status === 'deposit_paid' ? '입금 확인 완료' : '주문 접수 완료! 입금을 진행해주세요'}
+                        </h3>
+                        <p className="text-sm text-indigo-700 mb-4">
+                          {request.payment_status === 'deposit_paid'
+                            ? '관리자가 입금을 확인했습니다. 상품 구매를 진행합니다.'
+                            : '아래 계좌로 선금(70%)을 입금해주시면 구매가 시작됩니다.'}
+                        </p>
+
+                        {/* 계좌 정보 (입금 대기중일 때만 표시) */}
+                        {request.payment_status !== 'deposit_paid' && (
+                          <div className="bg-white p-4 rounded-lg border border-indigo-100 shadow-sm space-y-3">
+                            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                              <span className="text-xs font-bold text-slate-500">은행명</span>
+                              <span className="text-sm font-bold text-slate-800">VietComBank</span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                              <span className="text-xs font-bold text-slate-500">계좌번호</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-base font-black text-indigo-600">1234-5678-9012</span>
+                                <button
+                                  onClick={() => navigator.clipboard.writeText('123456789012')}
+                                  className="text-xs bg-slate-100 px-2 py-1 rounded hover:bg-slate-200 text-slate-600"
+                                >
+                                  복사
+                                </button>
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                              <span className="text-xs font-bold text-slate-500">예금주</span>
+                              <span className="text-sm font-medium text-slate-800">KIM MIN SU (Vina-K)</span>
+                            </div>
+                            <div className="flex justify-between items-center pt-1">
+                              <span className="text-xs font-bold text-slate-500">입금하실 선금 (70%)</span>
+                              <span className="text-lg font-black text-indigo-600">
+                                {request.deposit_amount?.toLocaleString()} VND
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 결제 진행 버튼 (Request Level) - reviewed 상태일 때만 표시 */}
                 {request.status === 'reviewed' && (
                   <div className="mt-6 pt-6 border-t border-slate-200">
                     <div className="flex flex-col sm:flex-row justify-end items-center gap-4">
@@ -794,7 +849,7 @@ export default function MyPage() {
                         onClick={() => handleRequestCheckout(request)}
                         className="w-full sm:w-auto px-8 py-4 bg-indigo-600 text-white text-base font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2"
                       >
-                        <span>결제하기</span>
+                        <span>{t('mypage.requestPurchase')} / 결제하기</span>
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>
