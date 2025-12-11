@@ -69,10 +69,10 @@ export default function RequestDetailPage() {
         result.items.forEach((item: RequestItem) => {
           initialUpdates[item.id] = {
             price: item.admin_price ? item.admin_price.toLocaleString('ko-KR').replace(/,/g, '') : '',
-            options: item.admin_options?.map(opt => ({
+            options: Array.isArray(item.admin_options) ? item.admin_options.map(opt => ({
               name: opt.name,
               price: opt.price.toLocaleString('ko-KR')
-            })) || [],
+            })) : [],
             capacity: item.admin_capacity || '',
             color: item.admin_color || '',
             etc: item.admin_etc || '',

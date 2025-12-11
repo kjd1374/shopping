@@ -266,7 +266,7 @@ export default function MyPage() {
       const selection = itemSelections[item.id]
       const selectedOptions: Record<string, string> = {}
 
-      if (item.admin_options && item.admin_options.length > 0) {
+      if (Array.isArray(item.admin_options) && item.admin_options.length > 0) {
         // 신규 옵션 시스템
         if (selection?.selectedOptionIndex === undefined || selection.selectedOptionIndex < 0) {
           alert(`'${item.og_title}' 상품의 옵션을 선택해주세요.`)
@@ -310,7 +310,7 @@ export default function MyPage() {
     const quantity = itemSelections[item.id]?.quantity || item.user_quantity || 1
 
     // 신규 옵션 시스템 가격
-    if (item.admin_options && item.admin_options.length > 0) {
+    if (Array.isArray(item.admin_options) && item.admin_options.length > 0) {
       const idx = itemSelections[item.id]?.selectedOptionIndex
       if (idx !== undefined && idx >= 0 && item.admin_options[idx]) {
         return item.admin_options[idx].price * quantity
@@ -552,7 +552,7 @@ export default function MyPage() {
                         {isReviewed && isApproved && (
                           <div className="space-y-4 mb-4">
                             {/* 신규 옵션 및 가격 선택 */}
-                            {item.admin_options && item.admin_options.length > 0 ? (
+                            {Array.isArray(item.admin_options) && item.admin_options.length > 0 ? (
                               <div className="mb-4">
                                 <label className="block text-xs font-bold text-slate-700 mb-2">
                                   옵션 선택 (필수)
@@ -694,7 +694,7 @@ export default function MyPage() {
                                 </span>
                               </div>
                               <p className="text-xs text-slate-500 mt-1 text-right">
-                                {item.admin_options && item.admin_options.length > 0 ? (
+                                {Array.isArray(item.admin_options) && item.admin_options.length > 0 ? (
                                   itemSelections[item.id]?.selectedOptionIndex !== undefined ? (
                                     `${item.admin_options[itemSelections[item.id]!.selectedOptionIndex!].price.toLocaleString('vi-VN')} VND × ${itemSelections[item.id]?.quantity || 1}개`
                                   ) : '옵션을 선택해주세요'
