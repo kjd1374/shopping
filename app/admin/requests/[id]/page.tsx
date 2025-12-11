@@ -175,7 +175,6 @@ export default function RequestDetailPage() {
           price,
           options.length > 0 ? options : null,
           capacity,
-          capacity,
           color,
           etc,
           rerequestNote,
