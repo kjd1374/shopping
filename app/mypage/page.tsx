@@ -446,6 +446,16 @@ export default function MyPage() {
                     const capacityOptions = parseOptions(item.admin_capacity)
                     const colorOptions = parseOptions(item.admin_color)
                     const etcOptions = parseOptions(item.admin_etc)
+
+                    // admin_options 안전하게 파싱
+                    if (typeof item.admin_options === 'string') {
+                      try {
+                        item.admin_options = JSON.parse(item.admin_options)
+                      } catch (e) {
+                        item.admin_options = []
+                      }
+                    }
+
                     const totalPrice = calculateTotal(item)
 
                     return (
@@ -706,17 +716,8 @@ export default function MyPage() {
                               </p>
                             </div>
 
-                            {/* 구매 요청하기 버튼 */}
-                            <button
-                              onClick={() => handleConfirmOrder(item.id)}
-                              disabled={request.status !== 'reviewed' || hasRerequestNote || !isApproved}
-                              className="w-full py-4 bg-indigo-600 text-white text-base font-bold rounded-xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg active:scale-[0.98]"
-                            >
-                              {t('mypage.saveOption')}
-                            </button>
                           </div>
                         )}
-
                         {/* 주문완료 (입금대기/완료) 상태일 때 */}
                         {request.status === 'ordered' && item.user_selected_options && (
                           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
@@ -762,24 +763,26 @@ export default function MyPage() {
                   })}
                 </div>
 
-                {/* Checkout Button for Request */}
+                {/* 결제 진행 버튼 (Request Level) */}
                 {request.status === 'reviewed' && (
-                  <div className="mt-6 pt-6 border-t border-slate-100 flex flex-col sm:flex-row justify-end items-center gap-4">
-                    <div className="text-right">
-                      <p className="text-xs text-slate-500 mb-1">총 결제 예정 금액 (배송비 별도)</p>
-                      <p className="text-2xl font-black text-slate-900">
-                        {request.request_items.reduce((sum, item) => {
-                          const qty = itemSelections[item.id]?.quantity || item.user_quantity || 1
-                          return sum + (item.admin_price || 0) * qty
-                        }, 0).toLocaleString('vi-VN')} VND
-                      </p>
+                  <div className="mt-6 pt-6 border-t border-slate-200">
+                    <div className="flex flex-col sm:flex-row justify-end items-center gap-4">
+                      <div className="text-right">
+                        <p className="text-xs text-slate-500 mb-1">{t('mypage.estimatedTotal')}</p>
+                        <p className="text-2xl font-black text-indigo-600">
+                          {request.request_items.reduce((sum, item) => sum + calculateTotal(item), 0).toLocaleString('vi-VN')} VND
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleRequestCheckout(request)}
+                        className="w-full sm:w-auto px-8 py-4 bg-indigo-600 text-white text-base font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2"
+                      >
+                        <span>{t('mypage.checkout') || '구매하기'}</span>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                      </button>
                     </div>
-                    <button
-                      onClick={() => router.push(`/checkout?requestId=${request.id}`)}
-                      className="w-full sm:w-auto px-8 py-4 bg-indigo-600 text-white text-lg font-bold rounded-xl hover:bg-indigo-700 shadow-lg transition-all active:scale-95"
-                    >
-                      결제하기
-                    </button>
                   </div>
                 )}
               </div>
