@@ -365,17 +365,7 @@ export default function MyPage() {
     })
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-slate-400">Loading...</div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6">
