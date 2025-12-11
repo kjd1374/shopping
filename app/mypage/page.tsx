@@ -283,47 +283,7 @@ export default function MyPage() {
   }
 
   const handleRequestCheckout = async (request: Request) => {
-    // 1. 모든 아이템에 대해 옵션 저장 실행
-    for (const item of request.request_items) {
-      // 구매 가능한 상태인 아이템만 처리 (approved or legacy approved)
-      const isApproved = item.item_status === 'approved' || (!item.item_status && item.is_buyable !== false)
-      if (!isApproved) continue
-
-      const selection = itemSelections[item.id]
-      const selectedOptions: Record<string, string> = {}
-
-      if (Array.isArray(item.admin_options) && item.admin_options.length > 0) {
-        // 신규 옵션 시스템
-        if (selection?.selectedOptionIndex === undefined || selection.selectedOptionIndex < 0) {
-          alert(`'${item.og_title}' 상품의 옵션을 선택해주세요.`)
-          return
-        }
-        const selectedOpt = item.admin_options[selection.selectedOptionIndex]
-        selectedOptions.optionName = selectedOpt.name
-        selectedOptions.priceStr = selectedOpt.price.toString()
-      } else {
-        // 레거시 옵션 시스템
-        if (selection) {
-          if (selection.capacity) selectedOptions.capacity = selection.capacity
-          if (selection.color) selectedOptions.color = selection.color
-          if (selection.etc) selectedOptions.etc = selection.etc
-        }
-      }
-
-      // 저장 실행
-      const result = await confirmOrder(
-        item.id,
-        selectedOptions,
-        selection?.quantity || item.user_quantity || 1
-      )
-
-      if (!result.success) {
-        alert(`아이템(${item.og_title}) 저장 실패: ${result.error}`)
-        return
-      }
-    }
-
-    // 2. 모두 성공하면 결제 페이지로 이동
+    // Stubbed for debugging
     router.push(`/checkout?requestId=${request.id}`)
   }
 
