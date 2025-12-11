@@ -349,29 +349,19 @@ export default function MyPage() {
   }
 
   const getStatusBadge = (status: string) => {
-    const styles = {
-      pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-      reviewed: 'bg-blue-100 text-blue-800 border-blue-300',
-      ordered: 'bg-green-100 text-green-800 border-green-300',
+    switch (status) {
+      case 'reviewed':
+        return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-blue-100 text-blue-800 border-blue-300">{t('mypage.status.reviewed')}</span>
+      case 'ordered':
+        return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-green-100 text-green-800 border-green-300">{t('mypage.status.ordered')}</span>
+      default:
+        return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-yellow-100 text-yellow-800 border-yellow-300">{t('mypage.status.pending')}</span>
     }
-    const labelKey = `mypage.status.${status}`
-    return (
-      <span
-        className={`px-2.5 py-1 text-xs font-bold rounded-md border ${styles[status as keyof typeof styles] || styles.pending}`}
-      >
-        {t(labelKey)}
-      </span>
-    )
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleString('ko-KR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleString('ko-KR', {
+      year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
     })
   }
 
