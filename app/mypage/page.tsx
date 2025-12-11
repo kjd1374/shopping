@@ -91,7 +91,6 @@ export default function MyPage() {
           admin_rerequest_note,
           user_selected_options,
           user_quantity,
-          user_quantity,
           item_status,
           user_response
         )
