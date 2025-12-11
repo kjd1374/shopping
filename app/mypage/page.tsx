@@ -777,7 +777,7 @@ export default function MyPage() {
                         onClick={() => handleRequestCheckout(request)}
                         className="w-full sm:w-auto px-8 py-4 bg-indigo-600 text-white text-base font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg active:scale-[0.98] flex items-center justify-center gap-2"
                       >
-                        <span>{t('mypage.checkout') || '구매하기'}</span>
+                        <span>결제하기</span>
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                         </svg>

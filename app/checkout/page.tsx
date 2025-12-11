@@ -54,11 +54,24 @@ function CheckoutContent() {
         const result = await getRequestDetails(requestId)
 
         if (result.success) {
-            setItems(result.items || [])
-            const itemsList = result.items || []
-            const total = itemsList.reduce((sum: number, item: any) => {
-                return sum + (item.admin_price || 0) * (item.user_quantity || 1)
+            // 필터링 및 가격 계산 로직 개선
+            const validityItems = (result.items || []).filter((item: any) => {
+                // 가격 확인
+                const price = item.user_selected_options?.priceStr
+                    ? parseInt(item.user_selected_options.priceStr)
+                    : (item.admin_price || 0)
+                return price > 0
+            })
+
+            setItems(validityItems)
+
+            const total = validityItems.reduce((sum: number, item: any) => {
+                const price = item.user_selected_options?.priceStr
+                    ? parseInt(item.user_selected_options.priceStr)
+                    : (item.admin_price || 0)
+                return sum + price * (item.user_quantity || 1)
             }, 0)
+
             setTotalAmount(total)
         } else {
             alert('정보를 불러오는데 실패했습니다.')
@@ -124,12 +137,26 @@ function CheckoutContent() {
                                 <div className="flex-1">
                                     <h3 className="text-sm font-bold text-slate-800 line-clamp-1">{item.og_title}</h3>
                                     <p className="text-xs text-slate-500 mt-1">
-                                        옵션: {item.user_selected_options?.color || '-'} / {item.user_selected_options?.capacity || '-'}
+                                        옵션: {
+                                            item.user_selected_options?.optionName
+                                                ? item.user_selected_options.optionName
+                                                : (
+                                                    [
+                                                        item.user_selected_options?.color,
+                                                        item.user_selected_options?.capacity,
+                                                        item.user_selected_options?.etc
+                                                    ].filter(Boolean).join(' / ') || '-'
+                                                )
+                                        }
                                     </p>
                                     <div className="flex justify-between items-center mt-2">
                                         <span className="text-xs text-slate-600">수량: {item.user_quantity || 1}개</span>
                                         <span className="text-sm font-bold text-slate-900">
-                                            {((item.admin_price || 0) * (item.user_quantity || 1)).toLocaleString()} VND
+                                            {(
+                                                (item.user_selected_options?.priceStr
+                                                    ? parseInt(item.user_selected_options.priceStr)
+                                                    : (item.admin_price || 0)) * (item.user_quantity || 1)
+                                            ).toLocaleString()} VND
                                         </span>
                                     </div>
                                 </div>
