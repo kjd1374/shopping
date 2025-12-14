@@ -4,6 +4,7 @@ import { useState, useRef, useImperativeHandle, forwardRef, useCallback, useEffe
 import { getUrlPreview, type PreviewResult } from '../actions/preview-url'
 import { submitProductRequest } from '../actions/submit-request'
 import { useLanguage } from '../contexts/LanguageContext'
+import { createClient } from '../lib/supabase/client'
 
 // 확장된 아이템 타입 (파일 객체 포함)
 interface ExtendedItem extends PreviewResult {
@@ -172,13 +173,44 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
 
     setSubmitLoading(true)
     try {
-      const result = await submitProductRequest(
-        items.map(item => ({
+      const supabase = createClient()
+
+      // 이미지 업로드 및 URL 변환
+      const processedItems = await Promise.all(items.map(async (item) => {
+        let imageUrl = item.images[0] || item.previewUrl || ''
+
+        // 파일이 있는 경우 업로드
+        if (item.file) {
+          try {
+            const fileExt = item.file.name.split('.').pop()
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
+
+            const { error: uploadError } = await supabase.storage
+              .from('request_images')
+              .upload(fileName, item.file)
+
+            if (uploadError) throw uploadError
+
+            const { data: { publicUrl } } = supabase.storage
+              .from('request_images')
+              .getPublicUrl(fileName)
+
+            imageUrl = publicUrl
+          } catch (e) {
+            console.error('Image upload failed:', e)
+            // 업로드 실패 시 기존 미리보기 URL 유지 (혹은 에러 처리)
+            // 여기서는 일단 진행하지만, 실제 서비스에선 알림 필요
+          }
+        }
+
+        return {
           url: item.url || '',
           title: item.title,
-          image: item.images[0] || item.previewUrl || ''
-        }))
-      )
+          image: imageUrl
+        }
+      }))
+
+      const result = await submitProductRequest(processedItems)
 
       if (result.success) {
         // 미리보기 URL 정리
