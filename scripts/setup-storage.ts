@@ -44,6 +44,34 @@ async function applyStoragePolicy() {
         console.log('Bucket "request_images" created successfully.')
     }
 
+    console.log('Bucket "request_images" created or already exists.')
+
+    // Test upload with Service Role Key
+    try {
+        const testBuffer = Buffer.from('Test file content')
+        const fileName = `test_upload_${Date.now()}.txt`
+
+        console.log(`Attempting to upload ${fileName} using Service Role Key...`)
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('request_images')
+            .upload(fileName, testBuffer, {
+                contentType: 'text/plain',
+                upsert: true
+            })
+
+        if (uploadError) {
+            console.error('Test upload FAILED with Service Role Key:', uploadError)
+        } else {
+            console.log('Test upload SUCCESS! Service Role Key has write access.', uploadData)
+
+            // Cleanup
+            await supabase.storage.from('request_images').remove([fileName])
+            console.log('Test file cleaned up.')
+        }
+    } catch (err) {
+        console.error('Unexpected error during test upload:', err)
+    }
+
     // Attempt to upload a test file to verify/trigger permissions
     // Note: Modifying policies via client is not standard without SQL.
     // We will assume the bucket creation with `public: true` helps.

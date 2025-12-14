@@ -194,13 +194,16 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
             const result = await uploadImage(formData)
 
             if (!result.success || !result.publicUrl) {
+              // 서버에서 리턴한 구체적인 에러 메시지가 있으면 사용
               throw new Error(result.error || 'Upload failed')
             }
 
             imageUrl = result.publicUrl
-          } catch (e) {
+          } catch (e: any) {
             console.error('Image upload failed:', e)
-            throw new Error(t('request.uploadFailed') || 'Image upload failed')
+            // 에러 메시지를 그대로 보여줌 (서버 설정 오류 등 확인 위해)
+            alert(e.message || t('request.uploadFailed'))
+            throw e // 상위 catch로 전달하여 로딩 상태 해제 등 처리
           }
         }
 

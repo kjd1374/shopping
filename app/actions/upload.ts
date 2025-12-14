@@ -25,6 +25,8 @@ export async function uploadImage(formData: FormData) {
         }
 
         // Create client
+        // Note: We prioritize Service Role Key. If missing, we warn in the error case.
+        const isUsingServiceKey = !!supabaseServiceKey;
         const supabase = createClient(supabaseUrl, supabaseKey)
 
         const fileExt = file.name.split('.').pop()
@@ -43,6 +45,15 @@ export async function uploadImage(formData: FormData) {
 
         if (uploadError) {
             console.error('Supabase upload error:', uploadError)
+
+            // If we failed AND we were not using the service key, it's likely a permission issue
+            if (!isUsingServiceKey && (uploadError.message.includes('policy') || uploadError.statusCode === '403')) {
+                return {
+                    success: false,
+                    error: 'Vercel 설정에 SUPABASE_SERVICE_ROLE_KEY가 누락되었습니다. 환경변수를 확인해주세요.'
+                }
+            }
+
             throw uploadError
         }
 
