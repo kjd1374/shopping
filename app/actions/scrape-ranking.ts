@@ -31,46 +31,24 @@ export async function scrapeOliveYoungRanking(categoryName?: string) {
       }
     })
 
-    await page.goto(RANKING_URL, { waitUntil: 'domcontentloaded', timeout: 30000 })
-
-    // 카테고리 이동 로직 (동적 탐색)
-    if (categoryName && categoryName !== '전체') {
-      try {
-        console.log(`🔎 '${categoryName}' 카테고리 찾는 중...`)
-
-        // 1. 카테고리 탭 찾기 (텍스트 매칭)
-        // 올리브영 랭킹 페이지 구조: .cate_list li a 혹은 .mn_list li a
-        // 정확한 셀렉터를 모를 경우를 대비해 텍스트를 포함하는 a 태그 검색
-
-        // 페이지 내에서 평가 실행 (DOM 조작)
-        const targetFound = await page.evaluate((targetName) => {
-          // 탭 메뉴 영역의 링크들 검색
-          const links = Array.from(document.querySelectorAll('a'));
-          const targetLink = links.find(el => el.textContent?.includes(targetName));
-
-          if (targetLink) {
-            targetLink.click();
-            return true;
-          }
-          return false;
-        }, categoryName);
-
-        if (targetFound) {
-          console.log(`✅ '${categoryName}' 클릭 성공, 페이지 로딩 대기...`)
-          // 클릭 후 페이지 이동/갱신 대기
-          await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 10000 }).catch(() => {
-            // 네비게이션이 발생하지 않는 AJAX 갱신일 수도 있음. 잠시 대기
-            return new Promise(r => setTimeout(r, 2000));
-          });
-        } else {
-          console.warn(`⚠️ '${categoryName}' 카테고리 링크를 찾을 수 없습니다. 전체 랭킹으로 진행합니다.`)
-        }
-
-      } catch (e) {
-        console.error(`카테고리 이동 실패: ${e}`)
-        // 실패해도 전체 랭킹이라도 긁도록 에러를 던지지 않음
-      }
+    // 카테고리별 URL 매핑
+    const CATEGORY_URLS: Record<string, string> = {
+      '전체': 'https://www.oliveyoung.co.kr/store/main/getBestList.do?dispCatNo=900000100100001&fltDispCatNo=&pageIdx=1&rowsPerPage=8&t_page=%EB%9E%AD%ED%82%B9&t_click=%ED%8C%90%EB%A7%A4%EB%9E%AD%ED%82%B9_%EC%A0%84%EC%B2%B4',
+      '스킨케어': 'https://www.oliveyoung.co.kr/store/main/getBestList.do?dispCatNo=900000100100001&fltDispCatNo=10000010001&pageIdx=1&rowsPerPage=8&t_page=%EB%9E%AD%ED%82%B9&t_click=%ED%8C%90%EB%A7%A4%EB%9E%AD%ED%82%B9_%EC%8A%A4%ED%82%A8%EC%BC%80%EC%96%B4',
+      '마스크팩': 'https://www.oliveyoung.co.kr/store/main/getBestList.do?dispCatNo=900000100100001&fltDispCatNo=10000010009&pageIdx=1&rowsPerPage=8&t_page=%EB%9E%AD%ED%82%B9&t_click=%ED%8C%90%EB%A7%A4%EB%9E%AD%ED%82%B9_%EB%A7%88%EC%8A%A4%ED%81%AC%ED%8C%A9',
+      '클렌징': 'https://www.oliveyoung.co.kr/store/main/getBestList.do?dispCatNo=900000100100001&fltDispCatNo=10000010010&pageIdx=1&rowsPerPage=8&t_page=%EB%9E%AD%ED%82%B9&t_click=%ED%8C%90%EB%A7%A4%EB%9E%AD%ED%82%B9_%ED%81%B4%EB%A0%8C%EC%A7%95',
+      '더모 코스메틱': 'https://www.oliveyoung.co.kr/store/main/getBestList.do?dispCatNo=900000100100001&fltDispCatNo=10000010008&pageIdx=1&rowsPerPage=8&t_page=%EB%9E%AD%ED%82%B9&t_click=%ED%8C%90%EB%A7%A4%EB%9E%AD%ED%82%B9_%EB%8D%94%EB%AA%A8+%EC%BD%94%EC%8A%A4%EB%A9%94%ED%8B%B1',
+      '헤어케어': 'https://www.oliveyoung.co.kr/store/main/getBestList.do?dispCatNo=900000100100001&fltDispCatNo=10000010004&pageIdx=1&rowsPerPage=8&t_page=%EB%9E%AD%ED%82%B9&t_click=%ED%8C%90%EB%A7%A4%EB%9E%AD%ED%82%B9_%ED%97%A4%EC%96%B4%EC%BC%80%EC%96%B4',
+      '바디케어': 'https://www.oliveyoung.co.kr/store/main/getBestList.do?dispCatNo=900000100100001&fltDispCatNo=10000010003&pageIdx=1&rowsPerPage=8&t_page=%EB%9E%AD%ED%82%B9&t_click=%ED%8C%90%EB%A7%A4%EB%9E%AD%ED%82%B9_%EB%B0%94%EB%94%94%EC%BC%80%EC%96%B4',
+      '선케어': 'https://www.oliveyoung.co.kr/store/main/getBestList.do?dispCatNo=900000100100001&fltDispCatNo=10000010011&pageIdx=1&rowsPerPage=8&t_page=%EB%9E%AD%ED%82%B9&t_click=%ED%8C%90%EB%A7%A4%EB%9E%AD%ED%82%B9_%EC%84%A0%EC%BC%80%EC%96%B4',
+      '메이크업': 'https://www.oliveyoung.co.kr/store/main/getBestList.do?dispCatNo=900000100100001&fltDispCatNo=10000010002&pageIdx=1&rowsPerPage=8&t_page=%EB%9E%AD%ED%82%B9&t_click=%ED%8C%90%EB%A7%A4%EB%9E%AD%ED%82%B9_%EB%A9%94%EC%9D%B4%ED%81%AC%EC%97%85',
     }
+
+    const targetUrl = categoryName && CATEGORY_URLS[categoryName]
+      ? CATEGORY_URLS[categoryName]
+      : RANKING_URL
+
+    await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 })
 
     // 데이터 추출
     const html = await page.content()

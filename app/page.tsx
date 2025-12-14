@@ -36,6 +36,8 @@ const beautySubCategories: SubCategory[] = [
   { id: 'dermo', name: '더모 코스메틱' },
   { id: 'hair', name: '헤어케어' },
   { id: 'body', name: '바디케어' },
+  { id: 'suncare', name: '선케어' },
+  { id: 'makeup', name: '메이크업' },
 ]
 
 export default function Home() {
@@ -214,15 +216,15 @@ export default function Home() {
           ))}
         </div>
 
-        {/* 서브 카테고리 (뷰티일 때만 표시) */}
+        {/* 서브 카테고리 (뷰티일 때만 표시) - 그리드 레이아웃 */}
         {category === 'beauty' && (
-          <div className="px-4 mb-6 overflow-x-auto scrollbar-hide">
-            <div className="flex gap-2">
+          <div className="px-4 mb-6">
+            <div className="grid grid-cols-4 gap-2">
               {beautySubCategories.map((sub) => (
                 <button
                   key={sub.id}
                   onClick={() => setSubCategory(sub)}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-full border transition-all whitespace-nowrap ${subCategory.id === sub.id
+                  className={`px-2 py-2 text-[11px] font-bold rounded-lg border transition-all text-center truncate ${subCategory.id === sub.id
                     ? 'bg-slate-800 text-white border-slate-800'
                     : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
                     }`}
