@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/app/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 
 // 요청 목록 조회
 export async function getRequests() {
@@ -283,7 +284,12 @@ export async function deleteUser(userId: string) {
       throw new Error('Server configuration error: Missing Supabase credentials')
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const supabase = createAdminClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
 
     // 1. auth.users에서 삭제 (관련된 public.profiles 등은 DB의 Cascade 설정에 따라 삭제됨)
     const { error } = await supabase.auth.admin.deleteUser(userId)
