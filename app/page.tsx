@@ -20,12 +20,29 @@ interface Product {
   origin_url: string
 }
 
+
+interface SubCategory {
+  id: string
+  name: string
+}
+
 type Category = 'beauty' | 'fashion'
+
+const beautySubCategories: SubCategory[] = [
+  { id: 'all', name: '전체' },
+  { id: 'skincare', name: '스킨케어' },
+  { id: 'maskpack', name: '마스크팩' },
+  { id: 'cleansing', name: '클렌징' },
+  { id: 'dermo', name: '더모 코스메틱' },
+  { id: 'hair', name: '헤어케어' },
+  { id: 'body', name: '바디케어' },
+]
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [category, setCategory] = useState<Category>('beauty')
+  const [subCategory, setSubCategory] = useState<SubCategory>(beautySubCategories[0])
   const [isScraping, setIsScraping] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const router = useRouter()
@@ -61,9 +78,15 @@ export default function Home() {
   }
 
   // 데이터 로드 함수
-  const fetchProducts = async (cat: Category) => {
+  const fetchProducts = async (cat: Category, sub: SubCategory) => {
     setLoading(true)
-    const type = cat === 'beauty' ? 'ranking_beauty' : 'ranking_fashion'
+
+    let type = 'ranking_beauty'
+    if (cat === 'fashion') {
+      type = 'ranking_fashion'
+    } else if (sub.id !== 'all') {
+      type = `ranking_beauty_${sub.name}`
+    }
 
     const { data } = await supabase
       .from('products')
@@ -77,22 +100,28 @@ export default function Home() {
   }
 
   useEffect(() => {
-    fetchProducts(category)
-  }, [category])
+    fetchProducts(category, subCategory)
+  }, [category, subCategory])
 
   const handleUpdateRanking = async () => {
     if (category !== 'beauty') {
       alert(t('ranking.updateOnlyBeauty'))
       return
     }
-    if (!confirm(t('ranking.updateConfirm'))) return
+
+    // 서브카테고리 이름 (스크래핑에 사용)
+    const targetName = subCategory.id === 'all' ? '전체' : subCategory.name
+
+    if (!confirm(`'${targetName}' ${t('ranking.updateConfirm')}`)) return
 
     setIsScraping(true)
     try {
-      const result = await scrapeOliveYoungRanking()
+      // 선택된 서브카테고리 이름 전달
+      const result = await scrapeOliveYoungRanking(targetName)
+
       if (result.success) {
         alert(`${t('ranking.updateSuccess')} (${result.count} ${t('language.products')})`)
-        fetchProducts(category)
+        fetchProducts(category, subCategory)
       } else {
         alert(`${t('ranking.updateFailed')}: ${result.error}`)
       }
@@ -165,12 +194,16 @@ export default function Home() {
 
         <hr className="border-slate-100 my-4" />
 
-        {/* 탭 메뉴 */}
-        <div className="flex p-1 mx-4 mt-2 mb-6 bg-slate-200/50 rounded-xl">
+        {/* 탭 메뉴 (메인 카테고리) */}
+        <div className="flex p-1 mx-4 mt-2 mb-2 bg-slate-200/50 rounded-xl">
           {(['beauty', 'fashion'] as Category[]).map((tab) => (
             <button
               key={tab}
-              onClick={() => setCategory(tab)}
+              onClick={() => {
+                setCategory(tab)
+                // 패션 전환 시 서브카테고리 초기화 혹은 유지 (현재는 뷰티만 서브 있음)
+                if (tab === 'fashion') setSubCategory(beautySubCategories[0])
+              }}
               className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${category === tab
                 ? 'bg-white text-slate-900 shadow-sm'
                 : 'text-slate-400 hover:text-slate-600'
@@ -180,6 +213,26 @@ export default function Home() {
             </button>
           ))}
         </div>
+
+        {/* 서브 카테고리 (뷰티일 때만 표시) */}
+        {category === 'beauty' && (
+          <div className="px-4 mb-6 overflow-x-auto scrollbar-hide">
+            <div className="flex gap-2">
+              {beautySubCategories.map((sub) => (
+                <button
+                  key={sub.id}
+                  onClick={() => setSubCategory(sub)}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-full border transition-all whitespace-nowrap ${subCategory.id === sub.id
+                    ? 'bg-slate-800 text-white border-slate-800'
+                    : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
+                    }`}
+                >
+                  {sub.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 랭킹 섹션 */}
         <section className="px-4 mb-8">
