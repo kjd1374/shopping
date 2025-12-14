@@ -449,39 +449,35 @@ export default function MyPage() {
                       </div>
                     ))}
 
-                  </button>
-                </div>
+
+                    {/* 실시간 견적 합계 (Reviewed 상태일 때) */}
+                    {req.status === 'reviewed' && (
+                      <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center bg-indigo-50 p-4 rounded-xl">
+                        <span className="text-slate-600 font-bold">{t('mypage.checkout.total')}</span>
+                        <span className="text-xl font-black text-indigo-700">
+                          {calculateRequestTotal(req).toLocaleString()} VND
+                        </span>
+                      </div>
                     )}
 
-                {/* 실시간 견적 합계 (Reviewed 상태일 때) */}
-                {req.status === 'reviewed' && (
-                  <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center bg-indigo-50 p-4 rounded-xl">
-                    <span className="text-slate-600 font-bold">{t('mypage.checkout.total')}</span>
-                    <span className="text-xl font-black text-indigo-700">
-                      {calculateRequestTotal(req).toLocaleString()} VND
-                    </span>
+                    {/* 결제 버튼 (Reviewed 상태일 때만) */}
+                    {req.status === 'reviewed' && (
+                      <div className="mt-4">
+                        <button
+                          onClick={() => handleRequestCheckout(req)}
+                          className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md active:scale-95 transition-all text-lg"
+                        >
+                          {t('mypage.checkout')}
+                        </button>
+                      </div>
+                    )}
                   </div>
-                )}
-
-                {/* 결제 버튼 (Reviewed 상태일 때만) */}
-                {req.status === 'reviewed' && (
-                  <div className="mt-4">
-                    <button
-                      onClick={() => handleRequestCheckout(req)}
-                      className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md active:scale-95 transition-all text-lg"
-                    >
-                      {t('mypage.checkout')}
-                    </button>
-                  </div>
-                )}
-              </div>
                 </div>
               </div>
             ))}
+          </div>
+        )}
+      </div>
     </div>
-  )
-}
-      </div >
-    </div >
   )
 }
