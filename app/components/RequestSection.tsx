@@ -107,10 +107,14 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
       }
       setItems(prev => [...prev, newItem])
 
-      // 입력 필드 초기화
+      // 입력 필드 초기화 (URL revoke 하지 않음 - 리스트 아이템이 사용)
       setProductName('')
       setInputUrl('')
-      handleRemoveImage()
+      setUploadedImage(null)
+      setImagePreview(null)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
       return
     }
 
