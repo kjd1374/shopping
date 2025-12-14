@@ -75,7 +75,7 @@ export default function SignupPage() {
                                 onChange={(e) => setName(e.target.value)}
                                 required
                                 placeholder="Hong Gil Dong"
-                                className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white"
+                                className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder:text-slate-400"
                                 disabled={loading}
                             />
                         </div>
@@ -88,7 +88,7 @@ export default function SignupPage() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 placeholder="example@email.com"
-                                className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white"
+                                className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder:text-slate-400"
                                 disabled={loading}
                             />
                         </div>
@@ -101,7 +101,7 @@ export default function SignupPage() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                                 placeholder="••••••••"
-                                className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white"
+                                className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder:text-slate-400"
                                 disabled={loading}
                             />
                         </div>
@@ -117,7 +117,7 @@ export default function SignupPage() {
                                         onChange={(e) => setPhone(e.target.value)}
                                         required
                                         placeholder="010-1234-5678"
-                                        className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white"
+                                        className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder:text-slate-400"
                                         disabled={loading}
                                     />
                                 </div>
@@ -129,7 +129,7 @@ export default function SignupPage() {
                                         onChange={(e) => setAddress(e.target.value)}
                                         required
                                         placeholder={t('auth.address.guide')}
-                                        className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white"
+                                        className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder:text-slate-400"
                                         disabled={loading}
                                     />
                                 </div>

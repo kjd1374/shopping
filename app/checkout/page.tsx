@@ -258,7 +258,7 @@ function CheckoutContent() {
                                 type="text"
                                 value={address.name}
                                 onChange={e => setAddress({ ...address, name: e.target.value })}
-                                className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500"
+                                className="w-full p-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500"
                                 placeholder="이름을 입력하세요"
                             />
                         </div>
@@ -268,7 +268,7 @@ function CheckoutContent() {
                                 type="tel"
                                 value={address.phone}
                                 onChange={e => setAddress({ ...address, phone: e.target.value })}
-                                className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500"
+                                className="w-full p-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500"
                                 placeholder="010-0000-0000"
                             />
                         </div>
@@ -279,7 +279,7 @@ function CheckoutContent() {
                                     type="text"
                                     value={address.postcode}
                                     onChange={e => setAddress({ ...address, postcode: e.target.value })}
-                                    className="w-32 p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500"
+                                    className="w-32 p-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500"
                                     placeholder="우편번호"
                                 />
                                 <button
@@ -293,14 +293,14 @@ function CheckoutContent() {
                                 type="text"
                                 value={address.address}
                                 onChange={e => setAddress({ ...address, address: e.target.value })}
-                                className="w-full px-4 py-3 rounded-lg border border-slate-200 text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                                className="w-full px-4 py-3 rounded-lg border border-slate-200 text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all mb-2"
                                 placeholder="기본 주소"
                             />
                             <input
                                 type="text"
                                 value={address.detailAddress}
                                 onChange={e => setAddress({ ...address, detailAddress: e.target.value })}
-                                className="w-full p-3 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500"
+                                className="w-full p-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500"
                                 placeholder="상세 주소를 입력하세요"
                             />
                         </div>
