@@ -5,10 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { getRequestDetails } from '../actions/admin'
 import { submitManualOrder } from '../actions/payment' // Updated action
 import { createClient } from '../lib/supabase/client'
+import LoadingState from '../components/LoadingState'
 
 export default function CheckoutPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+        <Suspense fallback={<LoadingState />}>
             <CheckoutContent />
         </Suspense>
     )
@@ -118,7 +119,7 @@ function CheckoutContent() {
     const depositAmount = Math.floor(totalAmount * 0.7)
     const finalAmount = totalAmount - depositAmount
 
-    if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>
+    if (loading) return <LoadingState />
 
     return (
         <main className="min-h-screen bg-slate-50 py-12 px-4">

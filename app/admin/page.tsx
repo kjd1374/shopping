@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getRequests, createShipmentBatch, assignRequestsToBatch, deleteRequests } from '../actions/admin'
 import { signOut } from '../actions/auth'
 import { toast } from 'sonner'
+import LoadingState from '../components/LoadingState'
 
 interface Request {
   id: string
@@ -182,17 +183,7 @@ export default function AdminDashboard() {
     })
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-slate-400">로딩 중...</div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  if (loading) return <LoadingState />
 
   return (
     <div className="min-h-screen bg-slate-50 p-6">
