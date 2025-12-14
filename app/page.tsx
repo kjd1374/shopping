@@ -79,8 +79,43 @@ export default function Home() {
     setIsLoggedIn(!!user)
   }
 
+  // 랭킹 업데이트 함수 (자동 모드 지원)
+  const handleUpdateRanking = async (isAuto = false) => {
+    if (category !== 'beauty') {
+      if (!isAuto) alert(t('ranking.updateOnlyBeauty'))
+      return
+    }
+
+    // 서브카테고리 이름 (스크래핑에 사용)
+    const targetName = subCategory.id === 'all' ? '전체' : subCategory.name
+
+    if (!isAuto && !confirm(`'${targetName}' ${t('ranking.updateConfirm')}`)) return
+
+    setIsScraping(true)
+    try {
+      // 선택된 서브카테고리 이름 전달
+      const result = await scrapeOliveYoungRanking(targetName) // scrape-ranking.ts must handle timeouts elegantly
+
+      if (result.success) {
+        if (!isAuto) alert(`${t('ranking.updateSuccess')} (${result.count} ${t('language.products')})`)
+        // 재조회 (무한루프 방지를 위해 fetchProducts 직접 호출 대신 state 업데이트 등 고려 필요하지만,
+        // 여기서는 데이터를 채웠으므로 다시 fetchProducts 호출해도 DB에 데이터가 있어 루프 안 돎)
+        fetchProducts(category, subCategory, false) // false = retry 안함
+      } else {
+        if (!isAuto) alert(`${t('ranking.updateFailed')}: ${result.error}`)
+        setLoading(false) // 실패 시 로딩 해제
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      if (!isAuto) alert(`${t('ranking.systemError')}: ${msg}`)
+      setLoading(false)
+    } finally {
+      setIsScraping(false)
+    }
+  }
+
   // 데이터 로드 함수
-  const fetchProducts = async (cat: Category, sub: SubCategory) => {
+  const fetchProducts = async (cat: Category, sub: SubCategory, autoFetchIfNeeded = true) => {
     setLoading(true)
 
     let type = 'ranking_beauty'
@@ -97,42 +132,19 @@ export default function Home() {
       .order('rank', { ascending: true })
       .limit(10)
 
+    if (!data || data.length === 0) {
+      // 데이터가 없고, 뷰티 카테고리이며, 자동 패치 허용 시
+      if (cat === 'beauty' && autoFetchIfNeeded) {
+        console.log('데이터 없음: 자동 업데이트 시작...')
+        // 로딩 상태 유지한 채로 스크래핑 시도
+        // handleUpdateRanking 내부에서 fetchProducts를 다시 부를 때 autoFetchIfNeeded=false로 불러야 함
+        await handleUpdateRanking(true)
+        return // handleUpdateRanking이 마무리하고 재조회까지 함
+      }
+    }
+
     setProducts(data || [])
     setLoading(false)
-  }
-
-  useEffect(() => {
-    fetchProducts(category, subCategory)
-  }, [category, subCategory])
-
-  const handleUpdateRanking = async () => {
-    if (category !== 'beauty') {
-      alert(t('ranking.updateOnlyBeauty'))
-      return
-    }
-
-    // 서브카테고리 이름 (스크래핑에 사용)
-    const targetName = subCategory.id === 'all' ? '전체' : subCategory.name
-
-    if (!confirm(`'${targetName}' ${t('ranking.updateConfirm')}`)) return
-
-    setIsScraping(true)
-    try {
-      // 선택된 서브카테고리 이름 전달
-      const result = await scrapeOliveYoungRanking(targetName)
-
-      if (result.success) {
-        alert(`${t('ranking.updateSuccess')} (${result.count} ${t('language.products')})`)
-        fetchProducts(category, subCategory)
-      } else {
-        alert(`${t('ranking.updateFailed')}: ${result.error}`)
-      }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      alert(`${t('ranking.systemError')}: ${msg}`)
-    } finally {
-      setIsScraping(false)
-    }
   }
 
   const handleRequest = (product: Product) => {
@@ -245,10 +257,12 @@ export default function Home() {
             <span className="text-xs text-slate-400 font-medium">{t('ranking.top10')}</span>
           </div>
 
-          {loading ? (
+          {loading || isScraping ? (
             <div className="flex gap-3 overflow-x-hidden">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="w-32 flex-shrink-0 aspect-[3/4] bg-slate-200 rounded-xl animate-pulse" />
+                <div key={i} className="w-32 flex-shrink-0 aspect-[3/4] bg-slate-200 rounded-xl animate-pulse flex items-center justify-center">
+                  {i === 1 && isScraping && <span className="text-xs text-slate-500 font-bold animate-bounce">최신 랭킹 확인 중...</span>}
+                </div>
               ))}
             </div>
           ) : products.length === 0 ? (
@@ -258,7 +272,7 @@ export default function Home() {
               </p>
               {category === 'beauty' && (
                 <button
-                  onClick={handleUpdateRanking}
+                  onClick={() => handleUpdateRanking(false)}
                   className="mt-3 text-xs text-blue-500 underline font-bold"
                 >
                   {t('ranking.fetch')}
@@ -315,7 +329,7 @@ export default function Home() {
       {/* 관리자용 업데이트 버튼 */}
       {category === 'beauty' && (
         <button
-          onClick={handleUpdateRanking}
+          onClick={() => handleUpdateRanking(false)}
           disabled={isScraping}
           className={`fixed bottom-4 right-4 bg-slate-800 text-white p-3 rounded-full shadow-lg z-50 transition-all active:scale-90 ${isScraping ? 'opacity-50 cursor-not-allowed' : 'hover:bg-black'}`}
           title="랭킹 업데이트"
