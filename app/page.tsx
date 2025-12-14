@@ -92,6 +92,11 @@ export default function Home() {
     setIsLoggedIn(!!user)
   }
 
+  // 카테고리나 서브카테고리가 변경되면 데이터를 불러옴
+  useEffect(() => {
+    fetchProducts(category, subCategory)
+  }, [category, subCategory])
+
   // 랭킹 업데이트 함수 (자동 모드 지원)
   const handleUpdateRanking = async (isAuto = false) => {
     // 뷰티/패션 모두 지원
