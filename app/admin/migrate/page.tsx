@@ -108,10 +108,14 @@ CREATE POLICY "Admin write access" ON "shipment_batches" FOR ALL USING (auth.uid
 
 -- 8. Sync Missing Profiles (누락된 프로필 생성)
 -- 이미 가입했지만 프로필이 없는 유저들을 위해 실행 (auth.users -> public.profiles)
-INSERT INTO public.profiles (id, email, role)
 SELECT id, email, 'user'
 FROM auth.users
-ON CONFLICT (id) DO NOTHING;`
+ON CONFLICT (id) DO NOTHING;
+
+-- 9. Fix Products Constraint (신발/전체 카테고리 중복 허용)
+-- 같은 상품 URL이라도 카테고리(랭킹 타입)가 다르면 저장될 수 있도록 제약조건 완화
+ALTER TABLE public.products DROP CONSTRAINT IF EXISTS products_origin_url_key;
+ALTER TABLE public.products ADD CONSTRAINT products_type_url_unique UNIQUE (product_type, origin_url);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(sql)
