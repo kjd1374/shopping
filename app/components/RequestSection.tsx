@@ -201,11 +201,7 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
 
             imageUrl = publicUrl
           } catch (e) {
-            // 썸네일로 교체
-            imageUrl = publicUrl
-          } catch (e) {
             console.error('Image upload failed:', e)
-            // 치명적 에러로 처리하여 알림
             throw new Error(t('request.uploadFailed') || 'Image upload failed')
           }
         }
