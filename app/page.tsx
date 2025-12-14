@@ -365,6 +365,14 @@ export default function Home() {
                     >
                       {t('ranking.button')}
                     </button>
+                    <a
+                      href={product.origin_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full text-center py-1.5 mt-1.5 bg-slate-50 border border-slate-200 text-slate-500 text-[10px] font-bold rounded-lg hover:bg-slate-100 transition-all no-underline"
+                    >
+                      {t('ranking.viewDetails')}
+                    </a>
                   </div>
                 </div>
               ))}
