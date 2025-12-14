@@ -186,20 +186,18 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
         // 파일이 있는 경우 업로드
         if (item.file) {
           try {
-            const fileExt = item.file.name.split('.').pop()
-            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
+            const formData = new FormData()
+            formData.append('file', item.file)
 
-            const { error: uploadError } = await supabase.storage
-              .from('request_images')
-              .upload(fileName, item.file)
+            // Dynamic import to avoid circular dependency issues if any
+            const { uploadImage } = await import('../actions/upload')
+            const result = await uploadImage(formData)
 
-            if (uploadError) throw uploadError
+            if (!result.success || !result.publicUrl) {
+              throw new Error(result.error || 'Upload failed')
+            }
 
-            const { data: { publicUrl } } = supabase.storage
-              .from('request_images')
-              .getPublicUrl(fileName)
-
-            imageUrl = publicUrl
+            imageUrl = result.publicUrl
           } catch (e) {
             console.error('Image upload failed:', e)
             throw new Error(t('request.uploadFailed') || 'Image upload failed')
