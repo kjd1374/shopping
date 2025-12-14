@@ -13,6 +13,7 @@ interface Request {
   status: 'pending' | 'reviewed' | 'ordered'
   created_at: string
   representative_title: string
+  user_email?: string
   request_items: {
     item_status: string
     admin_price: number | null
@@ -305,7 +306,7 @@ export default function AdminDashboard() {
                     요청일시
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
-                    고객ID
+                    이메일
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                     대표 상품명
@@ -340,11 +341,7 @@ export default function AdminDashboard() {
                         {formatDate(request.created_at)}
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-600">
-                        {request.user_id ? (
-                          <span className="font-mono text-xs">{request.user_id.substring(0, 8)}...</span>
-                        ) : (
-                          <span className="text-slate-400">-</span>
-                        )}
+                        {request.user_email || request.user_id?.substring(0, 8) + '...' || '-'}
                       </td>
                       <td className="px-4 py-3 text-sm text-slate-900 max-w-md truncate">
                         {request.representative_title}

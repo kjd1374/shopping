@@ -23,13 +23,27 @@ export async function getRequests() {
 
     if (error) throw error
 
-    // 첫 번째 아이템의 제목을 대표 상품명으로 사용
-    const requestsWithTitle = data?.map(request => ({
+    if (error) throw error
+
+    // 사용자 ID 목록 추출
+    const userIds = Array.from(new Set(data.map(r => r.user_id).filter(Boolean))) as string[]
+
+    // 프로필 정보 조회 (이메일 획득용)
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .in('id', userIds)
+
+    const profileMap = new Map(profiles?.map(p => [p.id, p.email]) || [])
+
+    // 데이터 조합
+    const requestsWithDetails = data?.map(request => ({
       ...request,
       representative_title: (request.request_items as any[])?.[0]?.og_title || '상품 없음',
+      user_email: request.user_id ? profileMap.get(request.user_id) : null
     })) || []
 
-    return { success: true, data: requestsWithTitle }
+    return { success: true, data: requestsWithDetails }
   } catch (error: any) {
     console.error('Get requests error:', error)
     return { success: false, error: error.message || 'Failed to fetch requests' }
@@ -256,6 +270,29 @@ export async function deleteRequests(requestIds: string[]) {
     return { success: true }
   } catch (error: any) {
     console.error('Delete requests error:', error)
+    return { success: false, error: error.message }
+  }
+}
+// 사용자 삭제 (Admin Only)
+export async function deleteUser(userId: string) {
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      throw new Error('Server configuration error: Missing Supabase credentials')
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+    // 1. auth.users에서 삭제 (관련된 public.profiles 등은 DB의 Cascade 설정에 따라 삭제됨)
+    const { error } = await supabase.auth.admin.deleteUser(userId)
+
+    if (error) throw error
+
+    return { success: true }
+  } catch (error: any) {
+    console.error('Delete user error:', error)
     return { success: false, error: error.message }
   }
 }

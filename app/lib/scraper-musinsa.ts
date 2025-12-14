@@ -13,7 +13,7 @@ const MUSINSA_URLS: Record<string, string> = {
     '바지': 'https://www.musinsa.com/main/musinsa/ranking?gf=A&storeCode=musinsa&sectionId=200&contentsId=&categoryCode=003000&ageBand=AGE_BAND_ALL&subPan=product',
     '원피스/스커트': 'https://www.musinsa.com/main/musinsa/ranking?gf=A&storeCode=musinsa&sectionId=200&contentsId=&categoryCode=100000&ageBand=AGE_BAND_ALL&subPan=product',
     '가방': 'https://www.musinsa.com/main/musinsa/ranking?gf=A&storeCode=musinsa&sectionId=200&contentsId=&categoryCode=004000&ageBand=AGE_BAND_ALL&subPan=product',
-    '신발': 'https://www.musinsa.com/main/musinsa/ranking?gf=A&storeCode=musinsa&sectionId=200&contentsId=&categoryCode=005000&ageBand=AGE_BAND_ALL&subPan=product',
+    '신발': 'https://www.musinsa.com/main/sneaker/ranking?gf=A&storeCode=sneaker&sectionId=256&contentsId=&categoryCode=103000&ageBand=AGE_BAND_ALL&subPan=product',
     '속옷/홈웨어': 'https://www.musinsa.com/main/musinsa/ranking?gf=A&storeCode=musinsa&sectionId=200&contentsId=&categoryCode=026000&ageBand=AGE_BAND_ALL&subPan=product',
     '뷰티': 'https://www.musinsa.com/main/musinsa/ranking?gf=A&storeCode=musinsa&sectionId=200&contentsId=&categoryCode=104000&ageBand=AGE_BAND_ALL&subPan=product'
 }

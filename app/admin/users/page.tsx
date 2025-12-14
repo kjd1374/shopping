@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { getUsers, updateUserRole } from '../../actions/admin'
+import { getUsers, updateUserRole, deleteUser } from '../../actions/admin' // deleteUser 추가
 
 interface UserProfile {
     id: string
@@ -102,10 +102,10 @@ export default function AdminUsersPage() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <span className={`px-2 py-1 text-xs font-bold rounded-full ${user.role === 'admin'
-                                                        ? 'bg-purple-100 text-purple-800'
-                                                        : user.role === 'partner'
-                                                            ? 'bg-blue-100 text-blue-800'
-                                                            : 'bg-slate-100 text-slate-600'
+                                                    ? 'bg-purple-100 text-purple-800'
+                                                    : user.role === 'partner'
+                                                        ? 'bg-blue-100 text-blue-800'
+                                                        : 'bg-slate-100 text-slate-600'
                                                     }`}>
                                                     {user.role}
                                                 </span>
@@ -123,6 +123,25 @@ export default function AdminUsersPage() {
                                                     <option value="partner">Partner (파트너)</option>
                                                     <option value="admin">Admin (관리자)</option>
                                                 </select>
+                                                <button
+                                                    onClick={async () => {
+                                                        if (!confirm('정말 이 사용자를 삭제하시겠습니까? (복구 불가)')) return
+                                                        try {
+                                                            const result = await deleteUser(user.id)
+                                                            if (result.success) {
+                                                                alert('사용자가 삭제되었습니다.')
+                                                                fetchUsers()
+                                                            } else {
+                                                                alert('삭제 실패: ' + result.error)
+                                                            }
+                                                        } catch (e: any) {
+                                                            alert('오류: ' + e.message)
+                                                        }
+                                                    }}
+                                                    className="ml-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition-colors"
+                                                >
+                                                    삭제
+                                                </button>
                                             </td>
                                         </tr>
                                     ))
