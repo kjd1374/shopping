@@ -261,247 +261,244 @@ export default function MyPage() {
     router.push(`/checkout?requestId=${request.id}`)
   }
 
-  router.push(`/checkout?requestId=${request.id}`)
-}
+  const handleDeleteItem = async (itemId: string) => {
+    if (!confirm('정말 삭제하시겠습니까?')) return
 
-const handleDeleteItem = async (itemId: string) => {
-  if (!confirm('정말 삭제하시겠습니까?')) return
+    // Dynamic import to avoid circular dep issues in client component if any (though here it's fine)
+    const { deleteRequestItem } = await import('../actions/request-item')
+    const result = await deleteRequestItem(itemId)
 
-  // Dynamic import to avoid circular dep issues in client component if any (though here it's fine)
-  const { deleteRequestItem } = await import('../actions/request-item')
-  const result = await deleteRequestItem(itemId)
-
-  if (result.success) {
-    alert('삭제되었습니다.')
-    loadData() // Reload data
-  } else {
-    alert('삭제 실패: ' + result.error)
-  }
-}
-
-const getStatusBadge = (req: Request) => {
-  // 상품 준비중 상태 확인 (주문됨 + 입금완료)
-  if (req.status === 'ordered' && req.payment_status === 'deposit_paid') {
-    return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-indigo-100 text-indigo-800 border-indigo-300">상품 준비중 📦</span>
+    if (result.success) {
+      alert('삭제되었습니다.')
+      loadData() // Reload data
+    } else {
+      alert('삭제 실패: ' + result.error)
+    }
   }
 
-  switch (req.status) {
-    case 'reviewed':
-      return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-blue-100 text-blue-800 border-blue-300">{t('mypage.status.reviewed')}</span>
-    case 'ordered':
-      return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-green-100 text-green-800 border-green-300">{t('mypage.status.ordered')}</span>
-    default:
-      return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-yellow-100 text-yellow-800 border-yellow-300">{t('mypage.status.pending')}</span>
+  const getStatusBadge = (req: Request) => {
+    // 상품 준비중 상태 확인 (주문됨 + 입금완료)
+    if (req.status === 'ordered' && req.payment_status === 'deposit_paid') {
+      return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-indigo-100 text-indigo-800 border-indigo-300">상품 준비중 📦</span>
+    }
+
+    switch (req.status) {
+      case 'reviewed':
+        return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-blue-100 text-blue-800 border-blue-300">{t('mypage.status.reviewed')}</span>
+      case 'ordered':
+        return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-green-100 text-green-800 border-green-300">{t('mypage.status.ordered')}</span>
+      default:
+        return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-yellow-100 text-yellow-800 border-yellow-300">{t('mypage.status.pending')}</span>
+    }
   }
-}
 
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleString('ko-KR', {
-    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
-  })
-}
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString('ko-KR', {
+      year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+    })
+  }
 
-if (loading) {
-  return <div className="p-10">Loading...</div>
-}
+  if (loading) {
+    return <div className="p-10">Loading...</div>
+  }
 
-return (
-  <div className="min-h-screen bg-slate-50 p-4 md:p-6">
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-6 flex justify-between items-center">
-        <h1 className="text-2xl font-black">{t('mypage.title')}</h1>
-        <div className="flex gap-2">
-          <button
-            onClick={() => router.push('/')}
-            className="text-xs bg-slate-900 text-white px-3 py-1 rounded font-bold"
-          >
-            {t('mypage.main')}
-          </button>
-          <LanguageSwitcher />
-          <button onClick={handleLogout} className="text-xs bg-red-100 text-red-600 px-3 py-1 rounded font-bold">{t('mypage.logout')}</button>
+  return (
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-6 flex justify-between items-center">
+          <h1 className="text-2xl font-black">{t('mypage.title')}</h1>
+          <div className="flex gap-2">
+            <button
+              onClick={() => router.push('/')}
+              className="text-xs bg-slate-900 text-white px-3 py-1 rounded font-bold"
+            >
+              {t('mypage.main')}
+            </button>
+            <LanguageSwitcher />
+            <button onClick={handleLogout} className="text-xs bg-red-100 text-red-600 px-3 py-1 rounded font-bold">{t('mypage.logout')}</button>
+          </div>
         </div>
-      </div>
 
-      {requests.length === 0 ? (
-        <div className="bg-white p-10 rounded text-center">No Requests</div>
-      ) : (
-        <div className="space-y-4">
-          {requests.map(req => (
-            <div key={req.id} className="bg-white p-4 rounded shadow border">
-              <div className="flex justify-between mb-4">
-                <span className="font-bold">{formatDate(req.created_at)}</span>
-                <span className="font-bold">{formatDate(req.created_at)}</span>
-                {getStatusBadge(req)}
-              </div>
-              {req.status === 'ordered' && (
-                <div className="bg-indigo-50 p-4 rounded mb-4">
-                  <h3 className="text-indigo-900 font-bold mb-2">주문/결제 정보</h3>
-                  <div className="flex justify-between items-center">
-                    <span>입금 상태</span>
-                    {req.payment_status === 'deposit_paid'
-                      ? <span className="text-green-600 font-bold">입금 완료 ✅</span>
-                      : <span className="text-yellow-600 font-bold">입금 대기 (선금 70% 필요)</span>
-                    }
-                  </div>
+        {requests.length === 0 ? (
+          <div className="bg-white p-10 rounded text-center">No Requests</div>
+        ) : (
+          <div className="space-y-4">
+            {requests.map(req => (
+              <div key={req.id} className="bg-white p-4 rounded shadow border">
+                <div className="flex justify-between mb-4">
+                  <span className="font-bold">{formatDate(req.created_at)}</span>
+                  <span className="font-bold">{formatDate(req.created_at)}</span>
+                  {getStatusBadge(req)}
                 </div>
-              )}
-              <div className="space-y-2">
-                <div className="space-y-4">
-                  {req.request_items.map(item => (
-                    <div key={item.id} className="border-t pt-4 mt-2 first:border-0 first:pt-0">
-                      <div className="flex gap-4">
-                        {/* 썸네일 */}
-                        <div className="w-20 h-20 bg-slate-100 rounded-lg flex-shrink-0 overflow-hidden border">
-                          {item.og_image ? (
-                            <img src={item.og_image} alt={item.og_title} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-slate-300">
-                              <span className="text-xs">No Image</span>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex-1">
-                          <p className="font-bold text-sm mb-1">{item.og_title}</p>
-
-                          {/* 상태별 UI 분기 */}
-                          {item.item_status === 'rejected' ? (
-                            <div className="bg-red-50 p-3 rounded-lg text-sm space-y-2 mt-2 border border-red-100">
-                              <div className="flex items-start gap-2 text-red-700">
-                                <span className="font-bold shrink-0">⛔ 구매 불가:</span>
-                                <span>{item.admin_rerequest_note || '관리자 사유 미입력'}</span>
+                {req.status === 'ordered' && (
+                  <div className="bg-indigo-50 p-4 rounded mb-4">
+                    <h3 className="text-indigo-900 font-bold mb-2">주문/결제 정보</h3>
+                    <div className="flex justify-between items-center">
+                      <span>입금 상태</span>
+                      {req.payment_status === 'deposit_paid'
+                        ? <span className="text-green-600 font-bold">입금 완료 ✅</span>
+                        : <span className="text-yellow-600 font-bold">입금 대기 (선금 70% 필요)</span>
+                      }
+                    </div>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <div className="space-y-4">
+                    {req.request_items.map(item => (
+                      <div key={item.id} className="border-t pt-4 mt-2 first:border-0 first:pt-0">
+                        <div className="flex gap-4">
+                          {/* 썸네일 */}
+                          <div className="w-20 h-20 bg-slate-100 rounded-lg flex-shrink-0 overflow-hidden border">
+                            {item.og_image ? (
+                              <img src={item.og_image} alt={item.og_title} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                <span className="text-xs">No Image</span>
                               </div>
-                            </div>
-                          ) : item.item_status === 'needs_info' ? (
-                            <div className="bg-yellow-50 p-3 rounded-lg text-sm space-y-2 mt-2 border border-yellow-100">
-                              <div className="flex items-start gap-2 text-yellow-800 mb-2">
-                                <span className="font-bold shrink-0">❓ 정보 요청:</span>
-                                <span>{item.admin_rerequest_note || '추가 정보가 필요합니다.'}</span>
-                              </div>
-                              <div className="pl-6">
-                                <p className="text-xs text-slate-500 mb-1">답변 입력 (ex: 사이즈/색상 상세)</p>
-                                <div className="flex gap-2">
-                                  <input
-                                    type="text"
-                                    placeholder="답변을 입력해주세요"
-                                    className="flex-1 px-3 py-2 border rounded text-xs"
-                                  // TODO: 답변 입력 state 및 핸들러 연결 필요
-                                  />
-                                  <button className="px-3 py-2 bg-yellow-500 text-white rounded text-xs font-bold hover:bg-yellow-600">
-                                    전송
-                                  </button>
+                            )}
+                          </div>
+
+                          <div className="flex-1">
+                            <p className="font-bold text-sm mb-1">{item.og_title}</p>
+
+                            {/* 상태별 UI 분기 */}
+                            {item.item_status === 'rejected' ? (
+                              <div className="bg-red-50 p-3 rounded-lg text-sm space-y-2 mt-2 border border-red-100">
+                                <div className="flex items-start gap-2 text-red-700">
+                                  <span className="font-bold shrink-0">⛔ 구매 불가:</span>
+                                  <span>{item.admin_rerequest_note || '관리자 사유 미입력'}</span>
                                 </div>
                               </div>
-                            </div>
-                          ) : req.status === 'reviewed' ? (
-                            <>
-                              {/* 관리자 메모 (있을 경우) */}
-                              {item.admin_rerequest_note && (
-                                <div className="bg-yellow-50 border border-yellow-200 p-3 rounded text-sm text-yellow-800 mb-2">
-                                  <span className="font-bold">📢 관리자 메시지:</span> {item.admin_rerequest_note}
+                            ) : item.item_status === 'needs_info' ? (
+                              <div className="bg-yellow-50 p-3 rounded-lg text-sm space-y-2 mt-2 border border-yellow-100">
+                                <div className="flex items-start gap-2 text-yellow-800 mb-2">
+                                  <span className="font-bold shrink-0">❓ 정보 요청:</span>
+                                  <span>{item.admin_rerequest_note || '추가 정보가 필요합니다.'}</span>
                                 </div>
-                              )}
-
-                              <div className="bg-slate-50 p-3 rounded-lg text-sm space-y-2 mt-2">
-                                {/* 가격 표시 */}
-                                <div className="flex justify-between items-center">
-                                  <span className="text-slate-500 font-bold">{t('mypage.unitPrice')}</span>
-                                  <span className="font-bold text-slate-900">
-                                    {/* 옵션 가격 또는 기본 가격 */}
-                                    {(item.admin_options && item.admin_options.length > 0)
-                                      ? (itemSelections[item.id]?.selectedOptionIndex !== undefined
-                                        ? `₩${item.admin_options[itemSelections[item.id]!.selectedOptionIndex!].price.toLocaleString()}`
-                                        : '옵션을 선택해주세요')
-                                      : (item.admin_price ? `₩${item.admin_price.toLocaleString()}` : '단가 미정 (관리자 문의)')}
-                                  </span>
+                                <div className="pl-6">
+                                  <p className="text-xs text-slate-500 mb-1">답변 입력 (ex: 사이즈/색상 상세)</p>
+                                  <div className="flex gap-2">
+                                    <input
+                                      type="text"
+                                      placeholder="답변을 입력해주세요"
+                                      className="flex-1 px-3 py-2 border rounded text-xs"
+                                    // TODO: 답변 입력 state 및 핸들러 연결 필요
+                                    />
+                                    <button className="px-3 py-2 bg-yellow-500 text-white rounded text-xs font-bold hover:bg-yellow-600">
+                                      전송
+                                    </button>
+                                  </div>
                                 </div>
+                              </div>
+                            ) : req.status === 'reviewed' ? (
+                              <>
+                                {/* 관리자 메모 (있을 경우) */}
+                                {item.admin_rerequest_note && (
+                                  <div className="bg-yellow-50 border border-yellow-200 p-3 rounded text-sm text-yellow-800 mb-2">
+                                    <span className="font-bold">📢 관리자 메시지:</span> {item.admin_rerequest_note}
+                                  </div>
+                                )}
 
-                                {/* 옵션 선택 */}
-                                {item.admin_options && item.admin_options.length > 0 && (
-                                  <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">{t('mypage.selectOption')}</label>
-                                    <div className="flex flex-wrap gap-2">
-                                      {item.admin_options.map((opt, idx) => (
-                                        <button
-                                          key={idx}
-                                          onClick={() => handleNewOptionSelect(item.id, idx)}
-                                          className={`px-2 py-1 text-xs rounded border ${itemSelections[item.id]?.selectedOptionIndex === idx
-                                            ? 'bg-blue-600 text-white border-blue-600'
-                                            : 'bg-white text-slate-600 border-slate-200'
-                                            }`}
-                                        >
-                                          {opt.name} (+₩{opt.price.toLocaleString()})
-                                        </button>
-                                      ))}
+                                <div className="bg-slate-50 p-3 rounded-lg text-sm space-y-2 mt-2">
+                                  {/* 가격 표시 */}
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-slate-500 font-bold">{t('mypage.unitPrice')}</span>
+                                    <span className="font-bold text-slate-900">
+                                      {/* 옵션 가격 또는 기본 가격 */}
+                                      {(item.admin_options && item.admin_options.length > 0)
+                                        ? (itemSelections[item.id]?.selectedOptionIndex !== undefined
+                                          ? `₩${item.admin_options[itemSelections[item.id]!.selectedOptionIndex!].price.toLocaleString()}`
+                                          : '옵션을 선택해주세요')
+                                        : (item.admin_price ? `₩${item.admin_price.toLocaleString()}` : '단가 미정 (관리자 문의)')}
+                                    </span>
+                                  </div>
+
+                                  {/* 옵션 선택 */}
+                                  {item.admin_options && item.admin_options.length > 0 && (
+                                    <div>
+                                      <label className="block text-xs font-bold text-slate-500 mb-1">{t('mypage.selectOption')}</label>
+                                      <div className="flex flex-wrap gap-2">
+                                        {item.admin_options.map((opt, idx) => (
+                                          <button
+                                            key={idx}
+                                            onClick={() => handleNewOptionSelect(item.id, idx)}
+                                            className={`px-2 py-1 text-xs rounded border ${itemSelections[item.id]?.selectedOptionIndex === idx
+                                              ? 'bg-blue-600 text-white border-blue-600'
+                                              : 'bg-white text-slate-600 border-slate-200'
+                                              }`}
+                                          >
+                                            {opt.name} (+₩{opt.price.toLocaleString()})
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* 기타 옵션들 (단순 텍스트) */}
+                                  {item.admin_capacity && (
+                                    <div className="text-xs text-slate-500">
+                                      <span className="font-bold">Capacity:</span> {item.admin_capacity}
+                                    </div>
+                                  )}
+
+                                  {/* 수량 조절 */}
+                                  <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                                    <span className="font-bold text-slate-500">{t('mypage.quantity')}</span>
+                                    <div className="flex items-center gap-3">
+                                      <button
+                                        onClick={() => handleQuantityChange(item.id, -1)}
+                                        className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="font-bold w-4 text-center">{itemSelections[item.id]?.quantity || 1}</span>
+                                      <button
+                                        onClick={() => handleQuantityChange(item.id, 1)}
+                                        className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50"
+                                      >
+                                        +
+                                      </button>
                                     </div>
                                   </div>
-                                )}
-
-                                {/* 기타 옵션들 (단순 텍스트) */}
-                                {item.admin_capacity && (
-                                  <div className="text-xs text-slate-500">
-                                    <span className="font-bold">Capacity:</span> {item.admin_capacity}
-                                  </div>
-                                )}
-
-                                {/* 수량 조절 */}
-                                <div className="flex items-center justify-between pt-2 border-t border-slate-200">
-                                  <span className="font-bold text-slate-500">{t('mypage.quantity')}</span>
-                                  <div className="flex items-center gap-3">
-                                    <button
-                                      onClick={() => handleQuantityChange(item.id, -1)}
-                                      className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50"
-                                    >
-                                      -
-                                    </button>
-                                    <span className="font-bold w-4 text-center">{itemSelections[item.id]?.quantity || 1}</span>
-                                    <button
-                                      onClick={() => handleQuantityChange(item.id, 1)}
-                                      className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50"
-                                    >
-                                      +
-                                    </button>
-                                  </div>
                                 </div>
-                              </div>
-                            </>
-                          ) : (
-                            <p className="text-sm text-gray-500">수량: {item.user_quantity}</p>
-                          )}
+                              </>
+                            ) : (
+                              <p className="text-sm text-gray-500">수량: {item.user_quantity}</p>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
 
 
-                  {/* 실시간 견적 합계 (Reviewed 상태일 때) */}
-                  {req.status === 'reviewed' && (
-                    <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center bg-indigo-50 p-4 rounded-xl">
-                      <span className="text-slate-600 font-bold">{t('mypage.checkout.total')}</span>
-                      <span className="text-xl font-black text-indigo-700">
-                        {calculateRequestTotal(req).toLocaleString()} VND
-                      </span>
-                    </div>
-                  )}
+                    {/* 실시간 견적 합계 (Reviewed 상태일 때) */}
+                    {req.status === 'reviewed' && (
+                      <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center bg-indigo-50 p-4 rounded-xl">
+                        <span className="text-slate-600 font-bold">{t('mypage.checkout.total')}</span>
+                        <span className="text-xl font-black text-indigo-700">
+                          {calculateRequestTotal(req).toLocaleString()} VND
+                        </span>
+                      </div>
+                    )}
 
-                  {/* 결제 버튼 (Reviewed 상태일 때만) */}
-                  {req.status === 'reviewed' && (
-                    <div className="mt-4">
-                      <button
-                        onClick={() => handleRequestCheckout(req)}
-                        className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md active:scale-95 transition-all text-lg"
-                      >
-                        {t('mypage.checkout')}
-                      </button>
-                    </div>
-                  )}
+                    {/* 결제 버튼 (Reviewed 상태일 때만) */}
+                    {req.status === 'reviewed' && (
+                      <div className="mt-4">
+                        <button
+                          onClick={() => handleRequestCheckout(req)}
+                          className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md active:scale-95 transition-all text-lg"
+                        >
+                          {t('mypage.checkout')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-)
+  )
 }
