@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { supabase } from './lib/supabase'
 import { scrapeOliveYoungRanking } from './actions/scrape-ranking'
+import { scrapeMusinsaRanking } from './actions/scrape-musinsa'
 import { useRouter } from 'next/navigation'
 import RequestSection, { type RequestSectionRef } from './components/RequestSection'
 import RecentActivity from './components/RecentActivity'
@@ -38,6 +39,18 @@ const beautySubCategories: SubCategory[] = [
   { id: 'body', name: '바디케어' },
   { id: 'suncare', name: '선케어' },
   { id: 'makeup', name: '메이크업' },
+]
+
+const fashionSubCategories: SubCategory[] = [
+  { id: 'all', name: '전체' },
+  { id: 'top', name: '상의' },
+  { id: 'outer', name: '아우터' },
+  { id: 'pants', name: '바지' },
+  { id: 'onepiece', name: '원피스/스커트' },
+  { id: 'bag', name: '가방' },
+  { id: 'shoes', name: '신발' },
+  { id: 'underwear', name: '속옷/홈웨어' },
+  { id: 'beauty', name: '뷰티' }, // Musinsa also has beauty
 ]
 
 export default function Home() {
@@ -81,29 +94,27 @@ export default function Home() {
 
   // 랭킹 업데이트 함수 (자동 모드 지원)
   const handleUpdateRanking = async (isAuto = false) => {
-    if (category !== 'beauty') {
-      if (!isAuto) alert(t('ranking.updateOnlyBeauty'))
-      return
-    }
-
-    // 서브카테고리 이름 (스크래핑에 사용)
+    // 뷰티/패션 모두 지원
     const targetName = subCategory.id === 'all' ? '전체' : subCategory.name
 
     if (!isAuto && !confirm(`'${targetName}' ${t('ranking.updateConfirm')}`)) return
 
     setIsScraping(true)
     try {
-      // 선택된 서브카테고리 이름 전달
-      const result = await scrapeOliveYoungRanking(targetName) // scrape-ranking.ts must handle timeouts elegantly
+      let result;
+
+      if (category === 'beauty') {
+        result = await scrapeOliveYoungRanking(targetName)
+      } else {
+        result = await scrapeMusinsaRanking(targetName)
+      }
 
       if (result.success) {
         if (!isAuto) alert(`${t('ranking.updateSuccess')} (${result.count} ${t('language.products')})`)
-        // 재조회 (무한루프 방지를 위해 fetchProducts 직접 호출 대신 state 업데이트 등 고려 필요하지만,
-        // 여기서는 데이터를 채웠으므로 다시 fetchProducts 호출해도 DB에 데이터가 있어 루프 안 돎)
-        fetchProducts(category, subCategory, false) // false = retry 안함
+        fetchProducts(category, subCategory, false)
       } else {
         if (!isAuto) alert(`${t('ranking.updateFailed')}: ${result.error}`)
-        setLoading(false) // 실패 시 로딩 해제
+        setLoading(false)
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
@@ -120,7 +131,7 @@ export default function Home() {
 
     let type = 'ranking_beauty'
     if (cat === 'fashion') {
-      type = 'ranking_fashion'
+      type = sub.id === 'all' ? 'ranking_fashion' : `ranking_fashion_${sub.name}`
     } else if (sub.id !== 'all') {
       type = `ranking_beauty_${sub.name}`
     }
@@ -133,13 +144,11 @@ export default function Home() {
       .limit(10)
 
     if (!data || data.length === 0) {
-      // 데이터가 없고, 뷰티 카테고리이며, 자동 패치 허용 시
-      if (cat === 'beauty' && autoFetchIfNeeded) {
+      // 데이터가 없고, 자동 패치 허용 시 (뷰티/패션 모두 적용)
+      if (autoFetchIfNeeded) {
         console.log('데이터 없음: 자동 업데이트 시작...')
-        // 로딩 상태 유지한 채로 스크래핑 시도
-        // handleUpdateRanking 내부에서 fetchProducts를 다시 부를 때 autoFetchIfNeeded=false로 불러야 함
         await handleUpdateRanking(true)
-        return // handleUpdateRanking이 마무리하고 재조회까지 함
+        return
       }
     }
 
@@ -215,8 +224,9 @@ export default function Home() {
               key={tab}
               onClick={() => {
                 setCategory(tab)
-                // 패션 전환 시 서브카테고리 초기화 혹은 유지 (현재는 뷰티만 서브 있음)
-                if (tab === 'fashion') setSubCategory(beautySubCategories[0])
+                // 패션/뷰티 모두 첫번째 탭으로 초기화 (원한다면)
+                if (tab === 'fashion') setSubCategory(fashionSubCategories[0])
+                if (tab === 'beauty') setSubCategory(beautySubCategories[0])
               }}
               className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${category === tab
                 ? 'bg-white text-slate-900 shadow-sm'
@@ -228,25 +238,23 @@ export default function Home() {
           ))}
         </div>
 
-        {/* 서브 카테고리 (뷰티일 때만 표시) - 그리드 레이아웃 */}
-        {category === 'beauty' && (
-          <div className="px-4 mb-6">
-            <div className="grid grid-cols-4 gap-2">
-              {beautySubCategories.map((sub) => (
-                <button
-                  key={sub.id}
-                  onClick={() => setSubCategory(sub)}
-                  className={`px-2 py-2 text-[11px] font-bold rounded-lg border transition-all text-center truncate ${subCategory.id === sub.id
-                    ? 'bg-slate-800 text-white border-slate-800'
-                    : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
-                    }`}
-                >
-                  {sub.name}
-                </button>
-              ))}
-            </div>
+        {/* 서브 카테고리 (그리드 레이아웃) */}
+        <div className="px-4 mb-6">
+          <div className="grid grid-cols-4 gap-2">
+            {(category === 'beauty' ? beautySubCategories : fashionSubCategories).map((sub) => (
+              <button
+                key={sub.id}
+                onClick={() => setSubCategory(sub)}
+                className={`px-2 py-2 text-[11px] font-bold rounded-lg border transition-all text-center truncate ${subCategory.id === sub.id
+                  ? 'bg-slate-800 text-white border-slate-800'
+                  : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
+                  }`}
+              >
+                {sub.name}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
 
         {/* 랭킹 섹션 */}
         <section className="px-4 mb-8">
@@ -270,14 +278,13 @@ export default function Home() {
               <p className="text-slate-400 text-sm">
                 {category === 'fashion' ? t('ranking.fashion.empty') : t('ranking.empty')}
               </p>
-              {category === 'beauty' && (
-                <button
-                  onClick={() => handleUpdateRanking(false)}
-                  className="mt-3 text-xs text-blue-500 underline font-bold"
-                >
-                  {t('ranking.fetch')}
-                </button>
-              )}
+              {/* 데이터 없음 - 자동 패치 중이면 안 보일 수 있으나... */}
+              <button
+                onClick={() => handleUpdateRanking(false)}
+                className="mt-3 text-xs text-blue-500 underline font-bold"
+              >
+                {t('ranking.fetch')}
+              </button>
             </div>
           ) : (
             <div className="flex gap-3 overflow-x-auto pb-6 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
@@ -326,21 +333,19 @@ export default function Home() {
 
       </div>
 
-      {/* 관리자용 업데이트 버튼 */}
-      {category === 'beauty' && (
-        <button
-          onClick={() => handleUpdateRanking(false)}
-          disabled={isScraping}
-          className={`fixed bottom-4 right-4 bg-slate-800 text-white p-3 rounded-full shadow-lg z-50 transition-all active:scale-90 ${isScraping ? 'opacity-50 cursor-not-allowed' : 'hover:bg-black'}`}
-          title="랭킹 업데이트"
-        >
-          {isScraping ? (
-            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
-          ) : (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-          )}
-        </button>
-      )}
+      {/* 관리자용 업데이트 버튼 (모든 카테고리에서 표시) */}
+      <button
+        onClick={() => handleUpdateRanking(false)}
+        disabled={isScraping}
+        className={`fixed bottom-4 right-4 bg-slate-800 text-white p-3 rounded-full shadow-lg z-50 transition-all active:scale-90 ${isScraping ? 'opacity-50 cursor-not-allowed' : 'hover:bg-black'}`}
+        title="랭킹 업데이트"
+      >
+        {isScraping ? (
+          <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
+        ) : (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+        )}
+      </button>
     </main>
   )
 }

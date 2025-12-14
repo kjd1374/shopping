@@ -1,6 +1,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { crawlOliveYoungRanking } from '../app/lib/scraper'
+import { crawlMusinsaRanking } from '../app/lib/scraper-musinsa'
 import dotenv from 'dotenv'
 import path from 'path'
 
@@ -29,9 +30,23 @@ const CATEGORIES = [
     '메이크업'
 ]
 
+const MUSINSA_CATEGORIES = [
+    '전체',
+    '상의',
+    '아우터',
+    '바지',
+    '원피스/스커트',
+    '가방',
+    '신발',
+    '속옷/홈웨어',
+    '뷰티'
+]
+
 async function main() {
     console.log('🕒 Daily Ranking Update Started...')
 
+    // 1. Olive Young
+    console.log('\n--- Olive Young ---')
     for (const category of CATEGORIES) {
         try {
             console.log(`Processing: ${category}`)
@@ -56,6 +71,39 @@ async function main() {
             }
 
             // Wait a bit between requests to avoid ban
+            await new Promise(r => setTimeout(r, 2000))
+
+        } catch (e) {
+            console.error(`Error processing ${category}:`, e)
+        }
+    }
+
+    // 2. Musinsa
+    console.log('\n--- Musinsa ---')
+    for (const category of MUSINSA_CATEGORIES) {
+        try {
+            console.log(`Processing: ${category}`)
+            const result = await crawlMusinsaRanking(category)
+
+            if (result.success && result.data && result.data.length > 0) {
+                const { data: products, productType } = result
+
+                // Remove old data
+                await supabase.from('products').delete().eq('product_type', productType!)
+
+                // Insert new data
+                const { error } = await supabase.from('products').insert(products)
+
+                if (error) {
+                    console.error(`Failed to save ${category}:`, error.message)
+                } else {
+                    console.log(`✅ Saved ${products.length} items for ${category}`)
+                }
+            } else {
+                console.warn(`⚠️ No items found for ${category}`)
+            }
+
+            // Wait a bit between requests
             await new Promise(r => setTimeout(r, 2000))
 
         } catch (e) {
