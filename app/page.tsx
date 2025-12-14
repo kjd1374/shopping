@@ -42,15 +42,15 @@ const beautySubCategories: SubCategory[] = [
 ]
 
 const fashionSubCategories: SubCategory[] = [
-  { id: 'all', name: '전체' },
-  { id: 'top', name: '상의' },
-  { id: 'outer', name: '아우터' },
-  { id: 'pants', name: '바지' },
-  { id: 'onepiece', name: '원피스/스커트' },
-  { id: 'bag', name: '가방' },
-  { id: 'shoes', name: '신발' },
-  { id: 'underwear', name: '속옷/홈웨어' },
-  { id: 'beauty', name: '뷰티' }, // Musinsa also has beauty
+  { id: 'all', name: 'fashion.all' },
+  { id: 'top', name: 'fashion.top' },
+  { id: 'outer', name: 'fashion.outer' },
+  { id: 'pants', name: 'fashion.pants' },
+  { id: 'onepiece', name: 'fashion.onepiece' },
+  { id: 'bag', name: 'fashion.bag' },
+  { id: 'shoes', name: 'fashion.shoes' },
+  { id: 'underwear', name: 'fashion.underwear' },
+  { id: 'beauty', name: 'fashion.beauty' },
 ]
 
 export default function Home() {
@@ -100,7 +100,36 @@ export default function Home() {
   // 랭킹 업데이트 함수 (자동 모드 지원)
   const handleUpdateRanking = async (isAuto = false) => {
     // 뷰티/패션 모두 지원
-    const targetName = subCategory.id === 'all' ? '전체' : subCategory.name
+    // name이 이제 번역 키이므로, 내부 로직용 이름은 별도로 매핑하거나 키를 사용해야 하지만,
+    // 기존 스크래퍼는 한글 이름을 사용하고 있음. 
+    // 따라서 여기서는 UI 표시용 텍스트만 번역하고, 스크래퍼에는 여전히 한글 이름을 넘겨줘야 함.
+    // 하지만 fashionSubCategories의 name이 이제 키값으로 변경되었음 ('fashion.top').
+    // 그러므로 키값을 다시 한글로 변환해서 넘겨주거나, 스크래퍼가 영문 ID를 받도록 수정해야 함.
+    // 간단하게 해결하기 위해 ID를 기반으로 한글 이름을 매핑하는게 안전함.
+
+    // (간단 맵핑 - 기존 로직 유지용)
+    const mapIdToKorean: Record<string, string> = {
+      'all': '전체',
+      'top': '상의',
+      'outer': '아우터',
+      'pants': '바지',
+      'onepiece': '원피스/스커트',
+      'bag': '가방',
+      'shoes': '신발',
+      'underwear': '속옷/홈웨어',
+      'beauty': '뷰티',
+      'skincare': '스킨케어',
+      'maskpack': '마스크팩',
+      'cleansing': '클렌징',
+      'dermo': '더모 코스메틱',
+      'hair': '헤어케어',
+      'body': '바디케어',
+      'suncare': '선케어',
+      'makeup': '메이크업'
+    }
+
+    const targetName = mapIdToKorean[subCategory.id] || subCategory.name
+    // const targetName = subCategory.id === 'all' ? '전체' : subCategory.name // (Old)
 
     if (!isAuto && !confirm(`'${targetName}' ${t('ranking.updateConfirm')}`)) return
 
@@ -136,7 +165,18 @@ export default function Home() {
 
     let type = 'ranking_beauty'
     if (cat === 'fashion') {
-      type = sub.id === 'all' ? 'ranking_fashion' : `ranking_fashion_${sub.name}`
+      // sub.name이 이제 키값이므로 ID나 매핑된 한글 이름을 써야 함.
+      // 기존 로직: `ranking_fashion_${sub.name}`
+      // 개선: mapIdToKorean 사용 또는 ID 사용.
+      // DB product_type은 한글로 저장되어 있음 (scraper-musinsa.ts 참조).
+      // 따라서 여기서도 한글로 변환 필요.
+      const mapIdToKoreanForType: Record<string, string> = {
+        'all': '전체', 'top': '상의', 'outer': '아우터', 'pants': '바지',
+        'onepiece': '원피스/스커트', 'bag': '가방', 'shoes': '신발',
+        'underwear': '속옷/홈웨어', 'beauty': '뷰티'
+      }
+      const korName = mapIdToKoreanForType[sub.id] || sub.name
+      type = sub.id === 'all' ? 'ranking_fashion' : `ranking_fashion_${korName}`
     } else if (sub.id !== 'all') {
       type = `ranking_beauty_${sub.name}`
     }
@@ -255,7 +295,7 @@ export default function Home() {
                   : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
                   }`}
               >
-                {sub.name}
+                {category === 'fashion' ? t(sub.name) : sub.name}
               </button>
             ))}
           </div>
@@ -274,7 +314,7 @@ export default function Home() {
             <div className="flex gap-3 overflow-x-hidden">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="w-32 flex-shrink-0 aspect-[3/4] bg-slate-200 rounded-xl animate-pulse flex items-center justify-center">
-                  {i === 1 && isScraping && <span className="text-xs text-slate-500 font-bold animate-bounce">최신 랭킹 확인 중...</span>}
+                  {i === 1 && isScraping && <span className="text-xs text-slate-500 font-bold animate-bounce">{t('ranking.loading')}</span>}
                 </div>
               ))}
             </div>
