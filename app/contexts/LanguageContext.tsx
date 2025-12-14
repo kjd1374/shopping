@@ -111,6 +111,7 @@ const translations: Record<Language, Record<string, string>> = {
     'mypage.status.reviewed': '승인완료',
     'mypage.status.ordered': '주문접수',
     'mypage.checkout': '결제하기',
+    'mypage.checkout.total': '총 견적 금액', // Added
     'mypage.section.ongoing': '🚀 진행 중인 주문',
     'mypage.section.history': '📋 견적 요청 내역',
     // Checkout

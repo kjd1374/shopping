@@ -51,6 +51,24 @@ function CheckoutContent() {
             return
         }
 
+        // 프로필 정보 가져오기 (주소 자동 입력)
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', currentUser.id)
+            .single()
+
+        if (profile) {
+            setAddress(prev => ({
+                ...prev,
+                name: profile.full_name || '',
+                phone: profile.phone || '',
+                address: profile.address || '',
+                // 상세 주소나 우편번호는 DB에 없다면 빈값 유지, 만약 address에 포함되어 있다면 분리 로직 필요하나
+                // 현재는 전체 주소를 address 필드에 넣는 것으로 처리
+            }))
+        }
+
         if (!requestId) return
         const result = await getRequestDetails(requestId)
 
