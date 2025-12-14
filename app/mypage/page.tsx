@@ -299,68 +299,78 @@ export default function MyPage() {
 
                             {/* 상태별 UI */}
                             {req.status === 'reviewed' ? (
-                              <div className="bg-slate-50 p-3 rounded-lg text-sm space-y-2 mt-2">
-                                {/* 가격 표시 */}
-                                <div className="flex justify-between items-center">
-                                  <span className="text-slate-500 font-bold">{t('mypage.unitPrice')}</span>
-                                  <span className="font-bold text-slate-900">
-                                    {/* 옵션 가격 또는 기본 가격 */}
-                                    {(item.admin_options && item.admin_options.length > 0 && itemSelections[item.id]?.selectedOptionIndex !== undefined)
+                              {/* 관리자 메모 (있을 경우) */ }
+                              {item.admin_rerequest_note && (
+                              <div className="bg-yellow-50 border border-yellow-200 p-3 rounded text-sm text-yellow-800 mb-2">
+                                <span className="font-bold">📢 관리자 메시지:</span> {item.admin_rerequest_note}
+                              </div>
+                            )}
+
+                            <div className="bg-slate-50 p-3 rounded-lg text-sm space-y-2 mt-2">
+                              {/* 가격 표시 */}
+                              {/* 가격 표시 */}
+                              <div className="flex justify-between items-center">
+                                <span className="text-slate-500 font-bold">{t('mypage.unitPrice')}</span>
+                                <span className="font-bold text-slate-900">
+                                  {/* 옵션 가격 또는 기본 가격 */}
+                                  {(item.admin_options && item.admin_options.length > 0)
+                                    ? (itemSelections[item.id]?.selectedOptionIndex !== undefined
                                       ? `₩${item.admin_options[itemSelections[item.id]!.selectedOptionIndex!].price.toLocaleString()}`
-                                      : (item.admin_price ? `₩${item.admin_price.toLocaleString()}` : '미정')}
-                                  </span>
+                                      : '옵션을 선택해주세요')
+                                    : (item.admin_price ? `₩${item.admin_price.toLocaleString()}` : '단가 미정 (관리자 문의)')}
+                                </span>
+                              </div>
+
+                              {/* 옵션 선택 */}
+                              {item.admin_options && item.admin_options.length > 0 && (
+                                <div>
+                                  <label className="block text-xs font-bold text-slate-500 mb-1">{t('mypage.selectOption')}</label>
+                                  <div className="flex flex-wrap gap-2">
+                                    {item.admin_options.map((opt, idx) => (
+                                      <button
+                                        key={idx}
+                                        onClick={() => handleNewOptionSelect(item.id, idx)}
+                                        className={`px-2 py-1 text-xs rounded border ${itemSelections[item.id]?.selectedOptionIndex === idx
+                                          ? 'bg-blue-600 text-white border-blue-600'
+                                          : 'bg-white text-slate-600 border-slate-200'
+                                          }`}
+                                      >
+                                        {opt.name} (+₩{opt.price.toLocaleString()})
+                                      </button>
+                                    ))}
+                                  </div>
                                 </div>
+                              )}
 
-                                {/* 옵션 선택 */}
-                                {item.admin_options && item.admin_options.length > 0 && (
-                                  <div>
-                                    <label className="block text-xs font-bold text-slate-500 mb-1">{t('mypage.selectOption')}</label>
-                                    <div className="flex flex-wrap gap-2">
-                                      {item.admin_options.map((opt, idx) => (
-                                        <button
-                                          key={idx}
-                                          onClick={() => handleNewOptionSelect(item.id, idx)}
-                                          className={`px-2 py-1 text-xs rounded border ${itemSelections[item.id]?.selectedOptionIndex === idx
-                                              ? 'bg-blue-600 text-white border-blue-600'
-                                              : 'bg-white text-slate-600 border-slate-200'
-                                            }`}
-                                        >
-                                          {opt.name} (+₩{opt.price.toLocaleString()})
-                                        </button>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
+                              {/* 기타 옵션들 (단순 텍스트) */}
+                              {item.admin_capacity && (
+                                <div className="text-xs text-slate-500">
+                                  <span className="font-bold">Capacity:</span> {item.admin_capacity}
+                                </div>
+                              )}
 
-                                {/* 기타 옵션들 (단순 텍스트) */}
-                                {item.admin_capacity && (
-                                  <div className="text-xs text-slate-500">
-                                    <span className="font-bold">Capacity:</span> {item.admin_capacity}
-                                  </div>
-                                )}
-
-                                {/* 수량 조절 */}
-                                <div className="flex items-center justify-between pt-2 border-t border-slate-200">
-                                  <span className="font-bold text-slate-500">{t('mypage.quantity')}</span>
-                                  <div className="flex items-center gap-3">
-                                    <button
-                                      onClick={() => handleQuantityChange(item.id, -1)}
-                                      className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50"
-                                    >
-                                      -
-                                    </button>
-                                    <span className="font-bold w-4 text-center">{itemSelections[item.id]?.quantity || 1}</span>
-                                    <button
-                                      onClick={() => handleQuantityChange(item.id, 1)}
-                                      className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50"
-                                    >
-                                      +
-                                    </button>
-                                  </div>
+                              {/* 수량 조절 */}
+                              <div className="flex items-center justify-between pt-2 border-t border-slate-200">
+                                <span className="font-bold text-slate-500">{t('mypage.quantity')}</span>
+                                <div className="flex items-center gap-3">
+                                  <button
+                                    onClick={() => handleQuantityChange(item.id, -1)}
+                                    className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50"
+                                  >
+                                    -
+                                  </button>
+                                  <span className="font-bold w-4 text-center">{itemSelections[item.id]?.quantity || 1}</span>
+                                  <button
+                                    onClick={() => handleQuantityChange(item.id, 1)}
+                                    className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50"
+                                  >
+                                    +
+                                  </button>
                                 </div>
                               </div>
+                            </div>
                             ) : (
-                              <p className="text-sm text-gray-500">수량: {item.user_quantity}</p>
+                            <p className="text-sm text-gray-500">수량: {item.user_quantity}</p>
                             )}
                           </div>
                         </div>

@@ -11,11 +11,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  // Signup fields
-  const [isSignUpMode, setIsSignUpMode] = useState(false)
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [address, setAddress] = useState('')
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -98,52 +93,6 @@ export default function LoginPage() {
     }
   }
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    try {
-      const result = await signUp(email, password, {
-        fullName: name,
-        phone,
-        address
-      })
-      if (result?.success) {
-        // Auto-login is handled inside signUp action in our plan, or here?
-        // Let's check the signUp implementation plan.
-        // Plan said: "Update handleSignUp to automatically redirect/login if the signup action returns success (and implies login)."
-
-        // If the server action 'signUp' already does auto-login (which the previous view_code_item showed it tries to), 
-        // then we just need to handle success here.
-        // The previous code showed `signUp` tries `signInWithPassword` after creating profile.
-
-        if (result.message?.includes('로그인 완료')) {
-          toast.success('회원가입 및 로그인 완료!')
-          router.push('/')
-          router.refresh()
-        } else {
-          // Case where auto-login failed but signup worked (or email confirm needed)
-          toast.success(result.message || '회원가입이 완료되었습니다.')
-          if (!result.message?.includes('로그인해주세요')) {
-            // If it's a "silent" success that implies login (which our server action seems to attempt)
-            // But wait, the `signUp` code item I viewed returns { success: true, message: '회원가입 및 로그인 완료' } on success.
-            // So we can assume it's logged in.
-            router.push('/')
-            router.refresh()
-          } else {
-            setLoading(false)
-          }
-        }
-      } else {
-        setError(result?.error || '회원가입에 실패했습니다.')
-        setLoading(false)
-      }
-    } catch (err: any) {
-      setError(err.message || '회원가입에 실패했습니다.')
-      setLoading(false)
-    }
-  }
 
   const handleSignOut = async () => {
     await signOut()
@@ -159,7 +108,7 @@ export default function LoginPage() {
           {/* 헤더 */}
           <div className="text-center mb-8">
             <h1 className="text-2xl font-black text-slate-900 mb-2">Vina-K</h1>
-            <p className="text-sm text-slate-500">{isSignUpMode ? '회원가입 (Sign Up)' : '로그인 (Login)'}</p>
+            <p className="text-sm text-slate-500">로그인 (Login)</p>
           </div>
 
           {/* 에러 메시지 */}
@@ -194,49 +143,8 @@ export default function LoginPage() {
           ) : (
             <>
               {/* 폼 */}
-              <form onSubmit={isSignUpMode ? handleSignUp : handleSignIn} className="space-y-4">
+              <form onSubmit={handleSignIn} className="space-y-4">
 
-                {/* 회원가입 전용 필드 */}
-                {isSignUpMode && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">이름 (Name)</label>
-                      <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required={isSignUpMode}
-                        placeholder="Hong Gil Dong"
-                        className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white"
-                        disabled={loading}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">연락처 (Phone)</label>
-                      <input
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        required={isSignUpMode}
-                        placeholder="010-1234-5678"
-                        className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white"
-                        disabled={loading}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-bold text-slate-700 mb-1.5">주소 (Address)</label>
-                      <input
-                        type="text"
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                        required={isSignUpMode}
-                        placeholder="Seoul, Gangnam-gu..."
-                        className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white"
-                        disabled={loading}
-                      />
-                    </div>
-                  </>
-                )}
 
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">
@@ -274,19 +182,16 @@ export default function LoginPage() {
                     disabled={loading}
                     className="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {loading ? '처리 중...' : (isSignUpMode ? '가입하기' : '로그인')}
+                    {loading ? '처리 중...' : '로그인'}
                   </button>
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setIsSignUpMode(!isSignUpMode)
-                      setError('')
-                    }}
+                    onClick={() => router.push('/signup')}
                     disabled={loading}
                     className="w-full py-2.5 bg-slate-100 text-slate-700 rounded-lg font-bold hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {isSignUpMode ? '로그인으로 돌아가기' : '회원가입 하러가기'}
+                    회원가입 하러가기
                   </button>
                 </div>
               </form>
