@@ -47,7 +47,7 @@ export async function uploadImage(formData: FormData) {
             console.error('Supabase upload error:', uploadError)
 
             // If we failed AND we were not using the service key, it's likely a permission issue
-            if (!isUsingServiceKey && (uploadError.message.includes('policy') || uploadError.statusCode === '403')) {
+            if (!isUsingServiceKey && uploadError.message.includes('policy')) {
                 return {
                     success: false,
                     error: 'Vercel 설정에 SUPABASE_SERVICE_ROLE_KEY가 누락되었습니다. 환경변수를 확인해주세요.'
