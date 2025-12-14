@@ -30,15 +30,15 @@ interface SubCategory {
 type Category = 'beauty' | 'fashion'
 
 const beautySubCategories: SubCategory[] = [
-  { id: 'all', name: '전체' },
-  { id: 'skincare', name: '스킨케어' },
-  { id: 'maskpack', name: '마스크팩' },
-  { id: 'cleansing', name: '클렌징' },
-  { id: 'dermo', name: '더모 코스메틱' },
-  { id: 'hair', name: '헤어케어' },
-  { id: 'body', name: '바디케어' },
-  { id: 'suncare', name: '선케어' },
-  { id: 'makeup', name: '메이크업' },
+  { id: 'all', name: 'beauty.all' },
+  { id: 'skincare', name: 'beauty.skincare' },
+  { id: 'maskpack', name: 'beauty.maskpack' },
+  { id: 'cleansing', name: 'beauty.cleansing' },
+  { id: 'dermo', name: 'beauty.dermo' },
+  { id: 'hair', name: 'beauty.hair' },
+  { id: 'body', name: 'beauty.body' },
+  { id: 'suncare', name: 'beauty.suncare' },
+  { id: 'makeup', name: 'beauty.makeup' },
 ]
 
 const fashionSubCategories: SubCategory[] = [
@@ -163,22 +163,23 @@ export default function Home() {
   const fetchProducts = async (cat: Category, sub: SubCategory, autoFetchIfNeeded = true) => {
     setLoading(true)
 
+    // 매핑 (fetch 시 한글 DB 타입 매칭 필요)
+    const mapIdToKoreanForType: Record<string, string> = {
+      'all': '전체', 'top': '상의', 'outer': '아우터', 'pants': '바지',
+      'onepiece': '원피스/스커트', 'bag': '가방', 'shoes': '신발',
+      'underwear': '속옷/홈웨어', 'beauty': '뷰티',
+      'skincare': '스킨케어', 'maskpack': '마스크팩', 'cleansing': '클렌징',
+      'dermo': '더모 코스메틱', 'hair': '헤어케어', 'body': '바디케어',
+      'suncare': '선케어', 'makeup': '메이크업'
+    }
+
     let type = 'ranking_beauty'
     if (cat === 'fashion') {
-      // sub.name이 이제 키값이므로 ID나 매핑된 한글 이름을 써야 함.
-      // 기존 로직: `ranking_fashion_${sub.name}`
-      // 개선: mapIdToKorean 사용 또는 ID 사용.
-      // DB product_type은 한글로 저장되어 있음 (scraper-musinsa.ts 참조).
-      // 따라서 여기서도 한글로 변환 필요.
-      const mapIdToKoreanForType: Record<string, string> = {
-        'all': '전체', 'top': '상의', 'outer': '아우터', 'pants': '바지',
-        'onepiece': '원피스/스커트', 'bag': '가방', 'shoes': '신발',
-        'underwear': '속옷/홈웨어', 'beauty': '뷰티'
-      }
       const korName = mapIdToKoreanForType[sub.id] || sub.name
       type = sub.id === 'all' ? 'ranking_fashion' : `ranking_fashion_${korName}`
     } else if (sub.id !== 'all') {
-      type = `ranking_beauty_${sub.name}`
+      const korName = mapIdToKoreanForType[sub.id] || sub.name
+      type = `ranking_beauty_${korName}`
     }
 
     const { data } = await supabase
@@ -295,7 +296,7 @@ export default function Home() {
                   : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
                   }`}
               >
-                {category === 'fashion' ? t(sub.name) : sub.name}
+                {t(sub.name)}
               </button>
             ))}
           </div>
