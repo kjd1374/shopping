@@ -68,54 +68,15 @@ ADD COLUMN IF NOT EXISTS admin_etc text null,
 ADD COLUMN IF NOT EXISTS admin_rerequest_note text null,
 ADD COLUMN IF NOT EXISTS user_selected_options jsonb null;
 
--- 7. Legacy Tables RLS Security Fix (보안 경고 해결)
--- 사용하지 않는 테이블들이지만 보안 경고 제거를 위해 RLS 활성화 및 잠금 처리
-
--- Category
-ALTER TABLE IF EXISTS "Category" ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Public read access" ON "Category";
-CREATE POLICY "Public read access" ON "Category" FOR SELECT USING (true);
-
--- CategoryOption
-ALTER TABLE IF EXISTS "CategoryOption" ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Public read access" ON "CategoryOption";
-CREATE POLICY "Public read access" ON "CategoryOption" FOR SELECT USING (true);
-
--- User (Legacy) - Lock down
-ALTER TABLE IF EXISTS "User" ENABLE ROW LEVEL SECURITY;
--- No active policy means only service role can access
-
--- Request (Legacy) - Lock down
-ALTER TABLE IF EXISTS "Request" ENABLE ROW LEVEL SECURITY;
--- No active policy means only service role can access
-
--- RequestOptionValue (Legacy) - Lock down
-ALTER TABLE IF EXISTS "RequestOptionValue" ENABLE ROW LEVEL SECURITY;
--- No active policy means only service role can access
-
--- Quotation (Legacy) - Lock down
-ALTER TABLE IF EXISTS "Quotation" ENABLE ROW LEVEL SECURITY;
--- No active policy means only service role can access
-
--- _PartnerCategory (Legacy) - Lock down
-ALTER TABLE IF EXISTS "_PartnerCategory" ENABLE ROW LEVEL SECURITY;
--- No active policy means only service role can access
-
--- Shipment Batches (Security)
-ALTER TABLE IF EXISTS "shipment_batches" ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Public read access" ON "shipment_batches" FOR SELECT USING (true);
-CREATE POLICY "Admin write access" ON "shipment_batches" FOR ALL USING (auth.uid() IN (SELECT id FROM public.profiles WHERE role = 'admin'));
-
--- 8. Sync Missing Profiles (누락된 프로필 생성)
--- 이미 가입했지만 프로필이 없는 유저들을 위해 실행 (auth.users -> public.profiles)
+-- 8. Sync Missing Profiles
+INSERT INTO public.profiles (id, email, role)
 SELECT id, email, 'user'
 FROM auth.users
 ON CONFLICT (id) DO NOTHING;
 
 -- 9. Fix Products Constraint (신발/전체 카테고리 중복 허용)
--- 같은 상품 URL이라도 카테고리(랭킹 타입)가 다르면 저장될 수 있도록 제약조건 완화
 ALTER TABLE public.products DROP CONSTRAINT IF EXISTS products_origin_url_key;
-ALTER TABLE public.products ADD CONSTRAINT products_type_url_unique UNIQUE (product_type, origin_url);
+ALTER TABLE public.products ADD CONSTRAINT products_type_url_unique UNIQUE (product_type, origin_url);`
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(sql)
