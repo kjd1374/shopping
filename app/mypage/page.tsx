@@ -495,32 +495,31 @@ export default function MyPage() {
                         </div>
                       </div>
                     </div>
-                      </div>
-                    ))}
+                  ))}
 
-                {/* 실시간 견적 합계 & 결제 버튼 */}
-                {req.status === 'reviewed' && (
-                  <div className="mt-4 pt-4 border-t border-slate-100">
-                    <div className="bg-indigo-50 p-4 rounded-xl flex justify-between items-center mb-4">
-                      <span className="text-slate-600 font-bold">{t('mypage.checkout.total')}</span>
-                      <span className="text-xl font-black text-indigo-700">
-                        {calculateRequestTotal(req).toLocaleString()} VND
-                      </span>
+                  {/* 실시간 견적 합계 & 결제 버튼 */}
+                  {req.status === 'reviewed' && (
+                    <div className="mt-4 pt-4 border-t border-slate-100">
+                      <div className="bg-indigo-50 p-4 rounded-xl flex justify-between items-center mb-4">
+                        <span className="text-slate-600 font-bold">{t('mypage.checkout.total')}</span>
+                        <span className="text-xl font-black text-indigo-700">
+                          {calculateRequestTotal(req).toLocaleString()} VND
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => handleRequestCheckout(req)}
+                        className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md active:scale-95 transition-all text-lg"
+                      >
+                        {t('mypage.checkout')}
+                      </button>
                     </div>
-                    <button
-                      onClick={() => handleRequestCheckout(req)}
-                      className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md active:scale-95 transition-all text-lg"
-                    >
-                      {t('mypage.checkout')}
-                    </button>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-              </div>
-        ))}
-      </div>
+            ))}
+          </div>
         )}
+      </div>
     </div>
-    </div >
   )
 }
