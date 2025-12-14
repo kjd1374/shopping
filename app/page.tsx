@@ -352,7 +352,7 @@ export default function Home() {
                   </div>
 
                   <div className="px-0.5">
-                    <p className="text-[10px] text-slate-400 font-bold mb-0.5 truncate">
+                    <p className="text-[10px] text-slate-500 font-bold mb-0.5 truncate">
                       {product.brand}
                     </p>
                     <h3 className="text-xs font-medium text-slate-900 line-clamp-2 h-8 leading-tight mb-2">
