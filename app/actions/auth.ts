@@ -19,7 +19,8 @@ export async function signIn(email: string, password: string) {
   return { success: true }
 }
 
-export async function signUp(email: string, password: string) {
+// 회원가입 (주소, 연락처 포함)
+export async function signUp(email: string, password: string, additionalData?: { address: string; phone: string; fullName: string }) {
   const supabase = createClient()
 
   // 회원가입만 수행 (자동 로그인 없음)
@@ -27,7 +28,7 @@ export async function signUp(email: string, password: string) {
     email,
     password,
     options: {
-      emailRedirectTo: undefined, // 이메일 확인 비활성화
+      emailRedirectTo: undefined,
     },
   })
 
@@ -36,18 +37,20 @@ export async function signUp(email: string, password: string) {
   }
 
   if (data.user) {
-    // 1. 프로필 생성 (트리거가 실패할 경우를 대비해 수동 생성)
+    // 1. 프로필 생성 (추가 정보 포함)
     const { error: profileError } = await supabase
       .from('profiles')
       .upsert({
         id: data.user.id,
         email: email,
-        role: 'user', // 기본 권한
+        role: 'user',
+        address: additionalData?.address || null,
+        phone: additionalData?.phone || null,
+        full_name: additionalData?.fullName || null,
       })
 
     if (profileError) {
       console.error('Profile creation error:', profileError)
-      // 프로필 생성 실패해도 로그인은 시도
     }
 
     // 2. 자동 로그인

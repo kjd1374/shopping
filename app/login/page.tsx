@@ -10,6 +10,13 @@ import { toast } from 'sonner'
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+
+  // Signup fields
+  const [isSignUpMode, setIsSignUpMode] = useState(false)
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [address, setAddress] = useState('')
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -97,7 +104,11 @@ export default function LoginPage() {
     setError('')
 
     try {
-      const result = await signUp(email, password)
+      const result = await signUp(email, password, {
+        fullName: name,
+        phone,
+        address
+      })
       if (result?.success) {
         // Auto-login is handled inside signUp action in our plan, or here?
         // Let's check the signUp implementation plan.
@@ -148,7 +159,7 @@ export default function LoginPage() {
           {/* 헤더 */}
           <div className="text-center mb-8">
             <h1 className="text-2xl font-black text-slate-900 mb-2">Vina-K</h1>
-            <p className="text-sm text-slate-500">로그인 또는 회원가입</p>
+            <p className="text-sm text-slate-500">{isSignUpMode ? '회원가입 (Sign Up)' : '로그인 (Login)'}</p>
           </div>
 
           {/* 에러 메시지 */}
@@ -183,7 +194,50 @@ export default function LoginPage() {
           ) : (
             <>
               {/* 폼 */}
-              <form onSubmit={handleSignIn} className="space-y-4">
+              <form onSubmit={isSignUpMode ? handleSignUp : handleSignIn} className="space-y-4">
+
+                {/* 회원가입 전용 필드 */}
+                {isSignUpMode && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5">이름 (Name)</label>
+                      <input
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required={isSignUpMode}
+                        placeholder="Hong Gil Dong"
+                        className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white"
+                        disabled={loading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5">연락처 (Phone)</label>
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        required={isSignUpMode}
+                        placeholder="010-1234-5678"
+                        className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white"
+                        disabled={loading}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1.5">주소 (Address)</label>
+                      <input
+                        type="text"
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        required={isSignUpMode}
+                        placeholder="Seoul, Gangnam-gu..."
+                        className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white"
+                        disabled={loading}
+                      />
+                    </div>
+                  </>
+                )}
+
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1.5">
                     이메일
@@ -214,24 +268,28 @@ export default function LoginPage() {
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? '처리 중...' : '로그인'}
-                </button>
-              </form>
+                <div className='flex flex-col gap-3 mt-6'>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {loading ? '처리 중...' : (isSignUpMode ? '가입하기' : '로그인')}
+                  </button>
 
-              <div className="mt-4">
-                <button
-                  onClick={handleSignUp}
-                  disabled={loading}
-                  className="w-full py-2.5 bg-slate-100 text-slate-700 rounded-lg font-bold hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  회원가입 ({loading ? '처리 중...' : '및 자동 로그인'})
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSignUpMode(!isSignUpMode)
+                      setError('')
+                    }}
+                    disabled={loading}
+                    className="w-full py-2.5 bg-slate-100 text-slate-700 rounded-lg font-bold hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isSignUpMode ? '로그인으로 돌아가기' : '회원가입 하러가기'}
+                  </button>
+                </div>
+              </form>
             </>
           )}
 
