@@ -201,9 +201,12 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
 
             imageUrl = publicUrl
           } catch (e) {
+            // 썸네일로 교체
+            imageUrl = publicUrl
+          } catch (e) {
             console.error('Image upload failed:', e)
-            // 업로드 실패 시 기존 미리보기 URL 유지 (혹은 에러 처리)
-            // 여기서는 일단 진행하지만, 실제 서비스에선 알림 필요
+            // 치명적 에러로 처리하여 알림
+            throw new Error(t('request.uploadFailed') || 'Image upload failed')
           }
         }
 

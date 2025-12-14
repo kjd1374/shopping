@@ -58,18 +58,26 @@ function CheckoutContent() {
             // 필터링 및 가격 계산 로직 개선
             const validityItems = (result.items || []).filter((item: any) => {
                 // 가격 확인
-                const price = item.user_selected_options?.priceStr
+                // 1. 사용자가 선택한 옵션 가격 (priceStr)
+                // 2. 관리자가 설정한 기본 단가 (admin_price)
+                const optionPrice = item.user_selected_options?.priceStr
                     ? parseInt(item.user_selected_options.priceStr)
-                    : (item.admin_price || 0)
-                return price > 0
+                    : 0
+
+                const finalPrice = optionPrice > 0 ? optionPrice : (item.admin_price || 0)
+
+                // 가격이 0 이상인 경우만 유효 (또는 견적 대기 중인 상품 제외)
+                return finalPrice > 0
             })
 
             setItems(validityItems)
 
             const total = validityItems.reduce((sum: number, item: any) => {
-                const price = item.user_selected_options?.priceStr
+                const optionPrice = item.user_selected_options?.priceStr
                     ? parseInt(item.user_selected_options.priceStr)
-                    : (item.admin_price || 0)
+                    : 0
+                const price = optionPrice > 0 ? optionPrice : (item.admin_price || 0)
+
                 return sum + price * (item.user_quantity || 1)
             }, 0)
 
@@ -154,10 +162,15 @@ function CheckoutContent() {
                                         <span className="text-xs text-slate-600">수량: {item.user_quantity || 1}개</span>
                                         <span className="text-sm font-bold text-slate-900">
                                             {(
-                                                (item.user_selected_options?.priceStr
-                                                    ? parseInt(item.user_selected_options.priceStr)
-                                                    : (item.admin_price || 0)) * (item.user_quantity || 1)
-                                            ).toLocaleString()} VND
+                                                (() => {
+                                                    const optionPrice = item.user_selected_options?.priceStr
+                                                        ? parseInt(item.user_selected_options.priceStr)
+                                                        : 0
+                                                    const price = optionPrice > 0 ? optionPrice : (item.admin_price || 0)
+                                                    return (price * (item.user_quantity || 1)).toLocaleString()
+                                                })()
+                                            )
+                                            } VND
                                         </span>
                                     </div>
                                 </div>

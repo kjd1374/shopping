@@ -5,8 +5,11 @@ import { useRouter } from 'next/navigation'
 import { signUp } from '../actions/auth'
 import { toast } from 'sonner'
 import Link from 'next/link'
+import { useLanguage } from '../contexts/LanguageContext'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 
 export default function SignupPage() {
+    const { t } = useLanguage()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [name, setName] = useState('')
@@ -48,9 +51,12 @@ export default function SignupPage() {
         <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
+                    <div className="text-right mb-2">
+                        <LanguageSwitcher />
+                    </div>
                     <div className="text-center mb-8">
-                        <h1 className="text-2xl font-black text-slate-900 mb-2">Vina-K</h1>
-                        <p className="text-sm text-slate-500">회원가입 (Sign Up)</p>
+                        <h1 className="text-2xl font-black text-slate-900 mb-2">{t('header.title')}</h1>
+                        <p className="text-sm text-slate-500">{t('auth.signup')}</p>
                     </div>
 
                     {error && (
@@ -62,7 +68,7 @@ export default function SignupPage() {
 
                     <form onSubmit={handleSignUp} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1.5">이름 (Name)</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-1.5">{t('auth.name')}</label>
                             <input
                                 type="text"
                                 value={name}
@@ -116,13 +122,13 @@ export default function SignupPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">주소 (Address)</label>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5">{t('auth.address')}</label>
                                     <input
                                         type="text"
                                         value={address}
                                         onChange={(e) => setAddress(e.target.value)}
                                         required
-                                        placeholder="Seoul, Gangnam-gu..."
+                                        placeholder={t('auth.address.guide')}
                                         className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white"
                                         disabled={loading}
                                     />
@@ -136,14 +142,14 @@ export default function SignupPage() {
                                 disabled={loading}
                                 className="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
-                                {loading ? '처리 중...' : '가입하기'}
+                                {loading ? '...' : t('auth.signupButton')}
                             </button>
 
                             <Link
                                 href="/login"
                                 className="block w-full text-center py-2.5 bg-slate-100 text-slate-700 rounded-lg font-bold hover:bg-slate-200 transition-colors"
                             >
-                                이미 계정이 있으신가요? 로그인
+                                {t('auth.hasAccount')} {t('auth.goLogin')}
                             </Link>
                         </div>
                     </form>

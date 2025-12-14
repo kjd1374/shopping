@@ -7,7 +7,10 @@ import { createClient } from '../lib/supabase/client'
 import { toast } from 'sonner'
 
 
+import { useLanguage } from '../contexts/LanguageContext'
+
 export default function LoginPage() {
+  const { t } = useLanguage()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
@@ -107,8 +110,8 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8">
           {/* 헤더 */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-black text-slate-900 mb-2">Vina-K</h1>
-            <p className="text-sm text-slate-500">로그인 (Login)</p>
+            <h1 className="text-2xl font-black text-slate-900 mb-2">{t('header.title')}</h1>
+            <p className="text-sm text-slate-500">{t('auth.login')}</p>
           </div>
 
           {/* 에러 메시지 */}
@@ -182,7 +185,7 @@ export default function LoginPage() {
                     disabled={loading}
                     className="w-full py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {loading ? '처리 중...' : '로그인'}
+                    {loading ? '...' : t('auth.loginButton')}
                   </button>
 
                   <button
@@ -191,7 +194,7 @@ export default function LoginPage() {
                     disabled={loading}
                     className="w-full py-2.5 bg-slate-100 text-slate-700 rounded-lg font-bold hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    회원가입 하러가기
+                    {t('auth.goSignup')}
                   </button>
                 </div>
               </form>

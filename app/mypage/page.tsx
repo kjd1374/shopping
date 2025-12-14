@@ -213,8 +213,43 @@ export default function MyPage() {
   }
 
   const handleRequestCheckout = async (request: Request) => {
-    // 1. 모든 아이템에 대해 옵션 저장 실행 (지금은 간단히 라우팅만)
-    // TODO: Restore full validation logic
+    // 1. 선택된 옵션들 저장
+    const selectionsToSave = request.request_items.map(item => {
+      const selection = itemSelections[item.id]
+      if (!selection) return null
+
+      let optionName = undefined
+      let price = undefined
+
+      // 옵션이 있는 경우
+      if (item.admin_options && item.admin_options.length > 0 && selection.selectedOptionIndex !== undefined) {
+        const opt = item.admin_options[selection.selectedOptionIndex]
+        optionName = opt.name
+        price = opt.price
+      } else if (item.admin_price) {
+        // 옵션이 없지만 기본 단가가 있는 경우
+        price = item.admin_price
+      }
+
+      return {
+        itemId: item.id,
+        quantity: selection.quantity,
+        selectedOptionIndex: selection.selectedOptionIndex,
+        optionName,
+        price
+      }
+    }).filter(Boolean)
+
+    if (selectionsToSave.length > 0) {
+      // 동적 임포트로 순환 참조 방지 또는 Server Action 직접 호출
+      const { saveItemSelections } = await import('../actions/save-selections')
+      const result = await saveItemSelections(selectionsToSave as any)
+      if (!result.success) {
+        alert('주문 정보를 저장하는데 실패했습니다.')
+        return
+      }
+    }
+
     router.push(`/checkout?requestId=${request.id}`)
   }
 
@@ -297,8 +332,36 @@ export default function MyPage() {
                           <div className="flex-1">
                             <p className="font-bold text-sm mb-1">{item.og_title}</p>
 
-                            {/* 상태별 UI */}
-                            {req.status === 'reviewed' ? (
+                            {/* 상태별 UI 분기 */}
+                            {item.item_status === 'rejected' ? (
+                              <div className="bg-red-50 p-3 rounded-lg text-sm space-y-2 mt-2 border border-red-100">
+                                <div className="flex items-start gap-2 text-red-700">
+                                  <span className="font-bold shrink-0">⛔ 구매 불가:</span>
+                                  <span>{item.admin_rerequest_note || '관리자 사유 미입력'}</span>
+                                </div>
+                              </div>
+                            ) : item.item_status === 'needs_info' ? (
+                              <div className="bg-yellow-50 p-3 rounded-lg text-sm space-y-2 mt-2 border border-yellow-100">
+                                <div className="flex items-start gap-2 text-yellow-800 mb-2">
+                                  <span className="font-bold shrink-0">❓ 정보 요청:</span>
+                                  <span>{item.admin_rerequest_note || '추가 정보가 필요합니다.'}</span>
+                                </div>
+                                <div className="pl-6">
+                                  <p className="text-xs text-slate-500 mb-1">답변 입력 (ex: 사이즈/색상 상세)</p>
+                                  <div className="flex gap-2">
+                                    <input
+                                      type="text"
+                                      placeholder="답변을 입력해주세요"
+                                      className="flex-1 px-3 py-2 border rounded text-xs"
+                                    // TODO: 답변 입력 state 및 핸들러 연결 필요
+                                    />
+                                    <button className="px-3 py-2 bg-yellow-500 text-white rounded text-xs font-bold hover:bg-yellow-600">
+                                      전송
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : req.status === 'reviewed' ? (
                               {/* 관리자 메모 (있을 경우) */ }
                               {item.admin_rerequest_note && (
                               <div className="bg-yellow-50 border border-yellow-200 p-3 rounded text-sm text-yellow-800 mb-2">
