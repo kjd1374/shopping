@@ -66,20 +66,20 @@ export async function submitProductRequest(items: RequestItem[]) {
     }
 
     // 3. 관리자에게 알림 전송 (이메일)
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      await sendAdminNotification({
-        type: 'NEW_REQUEST',
-        data: {
-          user_email: user?.email,
-          title: items[0]?.title,
-          quantity: items.length,
-          url: items[0]?.url
-        }
-      })
-    } catch (e) {
-      console.error('Notification failed:', e)
-    }
+    // try {
+    //   const { data: { user } } = await supabase.auth.getUser()
+    //   await sendAdminNotification({
+    //     type: 'NEW_REQUEST',
+    //     data: {
+    //       user_email: user?.email,
+    //       title: items[0]?.title,
+    //       quantity: items.length,
+    //       url: items[0]?.url
+    //     }
+    //   })
+    // } catch (e) {
+    //   console.error('Notification failed:', e)
+    // }
 
     return { success: true, requestId }
 
