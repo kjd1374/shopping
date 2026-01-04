@@ -25,6 +25,7 @@ interface RequestItem {
   item_status: 'pending' | 'approved' | 'rejected' | 'needs_info'
   user_response: string | null
   is_buyable?: boolean
+  is_hidden_by_user?: boolean
 }
 
 interface Request {
@@ -46,6 +47,7 @@ export default function MyPage() {
     selectedOptionIndex?: number
   }>>({})
   const [responseInputs, setResponseInputs] = useState<Record<string, string>>({})
+  const [selectedDeleteItems, setSelectedDeleteItems] = useState<Set<string>>(new Set())
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const router = useRouter()
   const { t } = useLanguage()
@@ -88,7 +90,9 @@ export default function MyPage() {
           user_selected_options,
           user_quantity,
           item_status,
-          user_response
+          item_status,
+          user_response,
+          is_hidden_by_user
         )
       `)
       .eq('user_id', currentUser.id)
@@ -116,6 +120,15 @@ export default function MyPage() {
       })
 
       setRequests(requestsData)
+
+      // Filter out empty requests if needed, but here we just filter items during render or here?
+      // Better to filter items here to avoid calculating totals for hidden items
+      const filteredRequests = requestsData.map(req => ({
+        ...req,
+        request_items: req.request_items.filter((item: any) => !item.is_hidden_by_user)
+      })).filter(req => req.request_items.length > 0) // Remove requests with no visible items
+
+      setRequests(filteredRequests)
 
       // 2. 초기 선택값 설정
       const initialSelections: Record<string, {
@@ -318,6 +331,32 @@ export default function MyPage() {
     }
   }
 
+  const toggleDeleteItem = (itemId: string) => {
+    const newSet = new Set(selectedDeleteItems)
+    if (newSet.has(itemId)) {
+      newSet.delete(itemId)
+    } else {
+      newSet.add(itemId)
+    }
+    setSelectedDeleteItems(newSet)
+  }
+
+  const handleDeleteSelected = async () => {
+    if (selectedDeleteItems.size === 0) return
+    if (!confirm('선택한 상품을 내 목록에서 삭제하시겠습니까? (관리자는 계속 볼 수 있습니다)')) return
+
+    const { hideRequestItems } = await import('../actions/request-item')
+    const result = await hideRequestItems(Array.from(selectedDeleteItems))
+
+    if (result.success) {
+      alert('삭제되었습니다.')
+      setSelectedDeleteItems(new Set())
+      loadData()
+    } else {
+      alert('삭제 실패: ' + result.error)
+    }
+  }
+
   const getStatusBadge = (req: Request) => {
     // 상품 준비중 상태 확인 (주문됨 + 입금완료)
     if (req.status === 'ordered' && req.payment_status === 'deposit_paid') {
@@ -348,7 +387,7 @@ export default function MyPage() {
     <div className="min-h-screen bg-slate-50 p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
         <div className="mb-6 flex justify-between items-center">
-          <h1 className="text-2xl font-black">{t('mypage.title')}</h1>
+          <h1 className="text-2xl font-black text-slate-900">{t('mypage.title')}</h1>
           <div className="flex gap-2">
             <button
               onClick={() => router.push('/')}
@@ -365,6 +404,18 @@ export default function MyPage() {
           <div className="bg-white p-10 rounded text-center">No Requests</div>
         ) : (
           <div className="space-y-4">
+            {/* 상단 일괄 삭제 버튼 */}
+            {selectedDeleteItems.size > 0 && (
+              <div className="flex justify-end mb-2">
+                <button
+                  onClick={handleDeleteSelected}
+                  className="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-100 transition-colors"
+                >
+                  선택 삭제 ({selectedDeleteItems.size})
+                </button>
+              </div>
+            )}
+
             {requests.map(req => (
               <div key={req.id} className="bg-white p-4 rounded shadow border">
                 {/* 헤더: 날짜 및 상태 */}
@@ -411,7 +462,17 @@ export default function MyPage() {
                 <div className="space-y-4">
                   {req.request_items.map(item => (
                     <div key={item.id} className="border-t pt-4 mt-2 first:border-0 first:pt-0">
-                      <div className="flex gap-4">
+                      <div className="flex gap-4 items-start">
+                        {/* 삭제 선택 체크박스 */}
+                        <div className="pt-8">
+                          <input
+                            type="checkbox"
+                            checked={selectedDeleteItems.has(item.id)}
+                            onChange={() => toggleDeleteItem(item.id)}
+                            className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                          />
+                        </div>
+
                         {/* 썸네일 */}
                         <div className="w-20 h-20 bg-slate-500 rounded-lg flex-shrink-0 overflow-hidden border">
                           {item.og_image ? (
@@ -428,13 +489,32 @@ export default function MyPage() {
                             {item.og_title}
                           </h3>
 
-                          {/* 상품 링크 및 수량 */}
+                          {/* 상품 구분: 구매완료(Ordered) vs 텍스트 전송(User Response) */}
+                          {req.status === 'ordered' ? (
+                            <div className="mt-2 text-sm bg-slate-50 p-2 rounded border border-slate-100">
+                              <div className="flex justify-between items-center text-slate-700">
+                                <span className="font-bold">구매 수량: {itemSelections[item.id]?.quantity || item.user_quantity}개</span>
+                                <span className="font-bold text-indigo-600">
+                                  {(calculateTotal(item) > 0 ? calculateTotal(item).toLocaleString() + ' VND' : '가격 미정')}
+                                </span>
+                              </div>
+                              {item.user_selected_options && item.user_selected_options.optionName && (
+                                <div className="text-xs text-slate-500 mt-1">옵션: {item.user_selected_options.optionName}</div>
+                              )}
+                            </div>
+                          ) : item.user_response ? (
+                            <div className="mt-2 bg-yellow-50 p-3 rounded border border-yellow-100">
+                              <span className="text-xs font-bold text-yellow-800 block mb-1">📝 내가 보낸 요청:</span>
+                              <p className="text-sm text-slate-700">{item.user_response}</p>
+                            </div>
+                          ) : (
+                            // 기본 표시 (아직 구매도 안했고, 답변도 안보낸 상태)
+                            <div className="text-slate-500 text-xs mt-2">
+                              {t('mypage.quantity')}: {item.user_quantity || 1}
+                            </div>
+                          )}
 
-                          <div className="text-slate-500 text-xs mt-2">
-                            {t('mypage.quantity')}: {item.user_quantity || 1}
-                          </div>
-
-                          {/* 상태별 UI 분기 */}
+                          {/* 상태별 UI 분기 (기존 로직 유지) */}
                           {item.item_status === 'rejected' ? (
                             <div className="bg-red-50 p-3 rounded-lg text-sm space-y-2 mt-2 border border-red-100">
                               <div className="flex items-start gap-2 text-red-700">

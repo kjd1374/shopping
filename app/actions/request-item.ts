@@ -41,3 +41,21 @@ export async function submitUserResponse(itemId: string, response: string) {
         return { success: false, error: error.message }
     }
 }
+
+export async function hideRequestItems(itemIds: string[]) {
+    try {
+        const supabase = createClient()
+        const { error } = await supabase
+            .from('request_items')
+            .update({ is_hidden_by_user: true })
+            .in('id', itemIds)
+
+        if (error) throw error
+
+        revalidatePath('/mypage')
+        return { success: true }
+    } catch (error: any) {
+        console.error('Hide items error:', error)
+        return { success: false, error: error.message }
+    }
+}
