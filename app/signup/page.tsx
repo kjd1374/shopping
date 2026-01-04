@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 import { useLanguage } from '../contexts/LanguageContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
+import { HO_CHI_MINH_CITY, HCMC_DISTRICTS } from '../lib/vn-location-data'
 
 export default function SignupPage() {
     const { t } = useLanguage()
@@ -14,7 +15,12 @@ export default function SignupPage() {
     const [password, setPassword] = useState('')
     const [name, setName] = useState('')
     const [phone, setPhone] = useState('')
-    const [address, setAddress] = useState('')
+
+    // Address State
+    const [city] = useState(HO_CHI_MINH_CITY)
+    const [district, setDistrict] = useState('')
+    const [ward, setWard] = useState('')
+    const [street, setStreet] = useState('')
 
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
@@ -26,10 +32,13 @@ export default function SignupPage() {
         setError('')
 
         try {
+            // Combine address components: "Street, Ward, District, City"
+            const fullAddress = `${street}, ${ward}, ${district}, ${city}`
+
             const result = await signUp(email, password, {
                 fullName: name,
                 phone,
-                address
+                address: fullAddress
             })
 
             if (result?.success) {
@@ -123,15 +132,63 @@ export default function SignupPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-bold text-slate-700 mb-1.5">{t('auth.address')}</label>
-                                    <input
-                                        type="text"
-                                        value={address}
-                                        onChange={(e) => setAddress(e.target.value)}
-                                        required
-                                        placeholder={t('auth.address.guide')}
-                                        className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder:text-slate-400"
-                                        disabled={loading}
-                                    />
+
+                                    {/* City - Fixed */}
+                                    <div className="mb-2">
+                                        <span className="text-xs text-slate-500 font-bold mb-1 block">Tỉnh / Thành phố</span>
+                                        <input
+                                            type="text"
+                                            value={city}
+                                            disabled
+                                            className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-slate-100 text-slate-500 font-medium"
+                                        />
+                                    </div>
+
+                                    <div className="flex gap-2 mb-2">
+                                        {/* District */}
+                                        <div className="flex-1">
+                                            <span className="text-xs text-slate-500 font-bold mb-1 block">Quận / Huyện</span>
+                                            <select
+                                                value={district}
+                                                onChange={(e) => setDistrict(e.target.value)}
+                                                required
+                                                className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                                disabled={loading}
+                                            >
+                                                <option value="">Select District</option>
+                                                {HCMC_DISTRICTS.map(d => (
+                                                    <option key={d} value={d}>{d}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        {/* Ward */}
+                                        <div className="flex-1">
+                                            <span className="text-xs text-slate-500 font-bold mb-1 block">Phường / Xã</span>
+                                            <input
+                                                type="text"
+                                                value={ward}
+                                                onChange={(e) => setWard(e.target.value)}
+                                                required
+                                                placeholder="Phường/Xã"
+                                                className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder:text-slate-400"
+                                                disabled={loading}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Street */}
+                                    <div>
+                                        <span className="text-xs text-slate-500 font-bold mb-1 block">Số nhà, Tên đường</span>
+                                        <input
+                                            type="text"
+                                            value={street}
+                                            onChange={(e) => setStreet(e.target.value)}
+                                            required
+                                            placeholder="House No, Street Name"
+                                            className="w-full px-4 py-3 rounded-lg border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder:text-slate-400"
+                                            disabled={loading}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>

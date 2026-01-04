@@ -66,9 +66,29 @@ function CheckoutContent() {
                 ...prev,
                 name: profile.full_name || '',
                 phone: profile.phone || '',
-                // 기존 주소가 있다면 street에 일단 넣어둠 (구조화되지 않았을 가능성 높음)
-                street: profile.address || '',
             }))
+
+            // 주소 파싱 및 자동 채우기
+            if (profile.address) {
+                const parts = profile.address.split(',').map((s: string) => s.trim())
+                // Expected format: "Street, Ward, District, City"
+                // Check if last part is HCMC
+                if (parts.length >= 4 && parts[parts.length - 1].includes('Hồ Chí Minh')) {
+                    setAddress(prev => ({
+                        ...prev,
+                        city: HO_CHI_MINH_CITY,
+                        district: parts[parts.length - 2] || '',
+                        ward: parts[parts.length - 3] || '',
+                        street: parts.slice(0, parts.length - 3).join(', ') // Join remaining first parts
+                    }))
+                } else {
+                    // Legacy or generic address
+                    setAddress(prev => ({
+                        ...prev,
+                        street: profile.address || ''
+                    }))
+                }
+            }
         }
 
         if (!requestId) return
