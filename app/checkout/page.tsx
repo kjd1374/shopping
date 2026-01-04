@@ -6,6 +6,7 @@ import { getRequestDetails } from '../actions/admin'
 import { submitManualOrder } from '../actions/payment' // Updated action
 import { createClient } from '../lib/supabase/client'
 import LoadingState from '../components/LoadingState'
+import { HO_CHI_MINH_CITY, HCMC_DISTRICTS } from '../lib/vn-location-data'
 
 export default function CheckoutPage() {
     return (
@@ -25,12 +26,14 @@ function CheckoutContent() {
     const [totalAmount, setTotalAmount] = useState(0)
 
     // 배송지 정보
+    // 배송지 정보
     const [address, setAddress] = useState({
         name: '',
         phone: '',
-        postcode: '',
-        address: '',
-        detailAddress: ''
+        city: HO_CHI_MINH_CITY,
+        district: '',
+        ward: '',
+        street: ''
     })
 
     useEffect(() => {
@@ -63,9 +66,8 @@ function CheckoutContent() {
                 ...prev,
                 name: profile.full_name || '',
                 phone: profile.phone || '',
-                address: profile.address || '',
-                // 상세 주소나 우편번호는 DB에 없다면 빈값 유지, 만약 address에 포함되어 있다면 분리 로직 필요하나
-                // 현재는 전체 주소를 address 필드에 넣는 것으로 처리
+                // 기존 주소가 있다면 street에 일단 넣어둠 (구조화되지 않았을 가능성 높음)
+                street: profile.address || '',
             }))
         }
 
@@ -107,12 +109,8 @@ function CheckoutContent() {
         setLoading(false)
     }
 
-    const handlePostcode = () => {
-        alert('우편번호 검색 기능은 추후 연동 예정입니다. 직접 입력해주세요.')
-    }
-
     const handleSubmit = async () => {
-        if (!address.name || !address.phone || !address.address) {
+        if (!address.name || !address.phone || !address.district || !address.ward || !address.street) {
             alert('배송지 정보를 모두 입력해주세요.')
             return
         }
@@ -122,13 +120,15 @@ function CheckoutContent() {
         const depositAmount = Math.floor(totalAmount * 0.7)
         const finalAmount = totalAmount - depositAmount
 
+        const fullAddress = `${address.street}, ${address.ward}, ${address.district}, ${address.city}`
+
         const result = await submitManualOrder({
             requestId: requestId!,
             shippingAddress: {
                 name: address.name,
                 phone: address.phone,
-                address: address.address + ' ' + address.detailAddress,
-                zipcode: address.postcode
+                address: fullAddress,
+                zipcode: '700000' // HCMC default zipcode
             },
             depositAmount, // 70%
             finalAmount   // 30%
@@ -273,36 +273,59 @@ function CheckoutContent() {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">주소</label>
-                            <div className="flex gap-2 mb-2">
+                            <label className="block text-sm font-bold text-slate-700 mb-1">주소 (Address)</label>
+
+                            {/* City - Fixed */}
+                            <div className="mb-2">
+                                <span className="text-xs text-slate-500 font-bold mb-1 block">Tỉnh / Thành phố</span>
                                 <input
                                     type="text"
-                                    value={address.postcode}
-                                    onChange={e => setAddress({ ...address, postcode: e.target.value })}
-                                    className="w-32 p-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500"
-                                    placeholder="우편번호"
+                                    value={address.city}
+                                    disabled
+                                    className="w-full p-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500 font-medium"
                                 />
-                                <button
-                                    onClick={handlePostcode}
-                                    className="px-4 py-3 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200"
-                                >
-                                    주소 검색
-                                </button>
                             </div>
-                            <input
-                                type="text"
-                                value={address.address}
-                                onChange={e => setAddress({ ...address, address: e.target.value })}
-                                className="w-full px-4 py-3 rounded-lg border border-slate-200 text-slate-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all mb-2"
-                                placeholder="기본 주소"
-                            />
-                            <input
-                                type="text"
-                                value={address.detailAddress}
-                                onChange={e => setAddress({ ...address, detailAddress: e.target.value })}
-                                className="w-full p-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500"
-                                placeholder="상세 주소를 입력하세요"
-                            />
+
+                            <div className="flex gap-2 mb-2">
+                                {/* District */}
+                                <div className="flex-1">
+                                    <span className="text-xs text-slate-500 font-bold mb-1 block">Quận / Huyện</span>
+                                    <select
+                                        value={address.district}
+                                        onChange={e => setAddress({ ...address, district: e.target.value })}
+                                        className="w-full p-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500 bg-white"
+                                    >
+                                        <option value="">선택하세요</option>
+                                        {HCMC_DISTRICTS.map(d => (
+                                            <option key={d} value={d}>{d}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {/* Ward */}
+                                <div className="flex-1">
+                                    <span className="text-xs text-slate-500 font-bold mb-1 block">Phường / Xã</span>
+                                    {/* Ward input as text for now to ensure coverage */}
+                                    <input
+                                        type="text"
+                                        value={address.ward}
+                                        onChange={e => setAddress({ ...address, ward: e.target.value })}
+                                        className="w-full p-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500"
+                                        placeholder="Phường/Xã 입력"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Street / House No */}
+                            <div>
+                                <span className="text-xs text-slate-500 font-bold mb-1 block">Số nhà, Tên đường</span>
+                                <input
+                                    type="text"
+                                    value={address.street}
+                                    onChange={e => setAddress({ ...address, street: e.target.value })}
+                                    className="w-full p-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500"
+                                    placeholder="예: 123 Nguyen Hue"
+                                />
+                            </div>
                         </div>
                     </div>
                 </section>
