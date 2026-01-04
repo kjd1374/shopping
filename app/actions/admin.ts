@@ -39,11 +39,18 @@ export async function getRequests() {
     const profileMap = new Map(profiles?.map(p => [p.id, p.email]) || [])
 
     // 데이터 조합
-    const requestsWithDetails = data?.map(request => ({
-      ...request,
-      representative_title: (request.request_items as any[])?.[0]?.og_title || '상품 없음',
-      user_email: request.user_id ? profileMap.get(request.user_id) : null
-    })) || []
+    const requestsWithDetails = data?.map(request => {
+      const hasUserReply = request.request_items.some((item: any) =>
+        item.user_response && item.item_status === 'pending'
+      )
+
+      return {
+        ...request,
+        representative_title: (request.request_items as any[])?.[0]?.og_title || '상품 없음',
+        user_email: request.user_id ? profileMap.get(request.user_id) : null,
+        has_user_reply: hasUserReply
+      }
+    }) || []
 
     return { success: true, data: requestsWithDetails }
   } catch (error: any) {

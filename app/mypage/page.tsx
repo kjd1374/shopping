@@ -16,6 +16,7 @@ interface RequestItem {
   admin_price: number | null
   admin_options: { name: string; price: number }[] | null
   admin_capacity: string | null
+  admin_weight: number | null // Added weight
   admin_color: string | null
   admin_etc: string | null
   admin_rerequest_note: string | null
@@ -80,6 +81,7 @@ export default function MyPage() {
           admin_price,
           admin_options,
           admin_capacity,
+          admin_weight,
           admin_color,
           admin_etc,
           admin_rerequest_note,
@@ -219,6 +221,23 @@ export default function MyPage() {
       if (item.item_status === 'rejected') return sum
       return sum + calculateTotal(item)
     }, 0)
+  }
+
+  const calculateShipping = (request: Request): number => {
+    const totalWeight = request.request_items.reduce((sum, item) => {
+      if (item.item_status === 'rejected') return sum
+      const quantity = itemSelections[item.id]?.quantity || item.user_quantity || 1
+      return sum + (item.admin_weight || 0) * quantity
+    }, 0)
+
+    // 배송비 정책: 1kg당 150,000 VND (최소 0.5kg)
+    // 하지만 단순하게 kg * 150,000 으로 적용하거나, 정책에 따라 다름.
+    // 여기서는 1kg당 150,000 VND 로 계산.
+    return totalWeight * 150000
+  }
+
+  const calculateGrandTotal = (request: Request): number => {
+    return calculateRequestTotal(request) + calculateShipping(request)
   }
 
   const handleRequestCheckout = async (request: Request) => {
@@ -528,11 +547,22 @@ export default function MyPage() {
                   {/* 실시간 견적 합계 & 결제 버튼 */}
                   {req.status === 'reviewed' && (
                     <div className="mt-4 pt-4 border-t border-slate-100">
-                      <div className="bg-indigo-50 p-4 rounded-xl flex justify-between items-center mb-4">
-                        <span className="text-slate-600 font-bold">{t('mypage.checkout.total')}</span>
-                        <span className="text-xl font-black text-indigo-700">
-                          {calculateRequestTotal(req).toLocaleString()} VND
-                        </span>
+                      <div className="bg-indigo-50 p-4 rounded-xl mb-4">
+                        <div className="flex justify-between items-center mb-2 text-sm text-slate-500">
+                          <span>상품 금액</span>
+                          <span>{calculateRequestTotal(req).toLocaleString()} VND</span>
+                        </div>
+                        <div className="flex justify-between items-center mb-2 text-sm text-slate-500">
+                          <span>배송비 (무게 기반)</span>
+                          <span>+{calculateShipping(req).toLocaleString()} VND</span>
+                        </div>
+                        <div className="border-t border-indigo-200 my-2"></div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-600 font-bold">{t('mypage.checkout.total')}</span>
+                          <span className="text-xl font-black text-indigo-700">
+                            {calculateGrandTotal(req).toLocaleString()} VND
+                          </span>
+                        </div>
                       </div>
                       <button
                         onClick={() => handleRequestCheckout(req)}

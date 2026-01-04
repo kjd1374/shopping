@@ -46,7 +46,7 @@ export async function getBatchDetails(batchId: string) {
         og_title,
         og_image,
         user_quantity,
-        user_selected_option,
+        user_selected_options,
         admin_price,
         admin_options
       )
@@ -59,7 +59,24 @@ export async function getBatchDetails(batchId: string) {
         throw new Error('Failed to fetch batch details')
     }
 
-    return data
+    // Map shipping address to flat fields if available
+    const enrichedData = data?.map(req => ({
+        ...req,
+        request_items: req.request_items.map((item: any) => ({
+            ...item,
+            user_selected_option: item.user_selected_options ?
+                (typeof item.user_selected_options === 'string' ? item.user_selected_options :
+                    item.user_selected_options.optionName ? `${item.user_selected_options.optionName}` : JSON.stringify(item.user_selected_options))
+                : null
+        })),
+        recipient_name: req.shipping_address?.name,
+        recipient_phone: req.shipping_address?.phone,
+        recipient_address: req.shipping_address ?
+            `${req.shipping_address.address} ${req.shipping_address.detailAddress || ''} (${req.shipping_address.zipcode})`
+            : null
+    }))
+
+    return enrichedData
 }
 
 export async function updateLocalShipping(requestId: string, batchId: string, trackingNo: string) {

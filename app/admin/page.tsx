@@ -149,6 +149,15 @@ export default function AdminDashboard() {
       }
     }
 
+    // 답변 도착 알림 (최우선)
+    if ((request as any).has_user_reply) {
+      return (
+        <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-orange-100 text-orange-800 border-orange-300 animate-pulse">
+          💌 답변 도착
+        </span>
+      )
+    }
+
     const styles = {
       pending: 'bg-yellow-100 text-yellow-800 border-yellow-300',
       reviewing: 'bg-purple-100 text-purple-800 border-purple-300',
