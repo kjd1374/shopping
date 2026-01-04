@@ -48,7 +48,8 @@ export async function getBatchDetails(batchId: string) {
         user_quantity,
         user_selected_options,
         admin_price,
-        admin_options
+        admin_options,
+        item_status
       )
     `)
         .eq('batch_id', batchId)
@@ -62,13 +63,15 @@ export async function getBatchDetails(batchId: string) {
     // Map shipping address to flat fields if available
     const enrichedData = data?.map(req => ({
         ...req,
-        request_items: req.request_items.map((item: any) => ({
-            ...item,
-            user_selected_option: item.user_selected_options ?
-                (typeof item.user_selected_options === 'string' ? item.user_selected_options :
-                    item.user_selected_options.optionName ? `${item.user_selected_options.optionName}` : JSON.stringify(item.user_selected_options))
-                : null
-        })),
+        request_items: req.request_items
+            .filter((item: any) => item.item_status !== 'rejected')
+            .map((item: any) => ({
+                ...item,
+                user_selected_option: item.user_selected_options ?
+                    (typeof item.user_selected_options === 'string' ? item.user_selected_options :
+                        item.user_selected_options.optionName ? `${item.user_selected_options.optionName}` : JSON.stringify(item.user_selected_options))
+                    : null
+            })),
         recipient_name: req.shipping_address?.name,
         recipient_phone: req.shipping_address?.phone,
         recipient_address: req.shipping_address ?
