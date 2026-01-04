@@ -44,6 +44,7 @@ export default function MyPage() {
     quantity: number
     selectedOptionIndex?: number
   }>>({})
+  const [responseInputs, setResponseInputs] = useState<Record<string, string>>({})
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const router = useRouter()
   const { t } = useLanguage()
@@ -276,6 +277,28 @@ export default function MyPage() {
     }
   }
 
+  const handleResponseChange = (itemId: string, value: string) => {
+    setResponseInputs(prev => ({ ...prev, [itemId]: value }))
+  }
+
+  const handleSubmitResponse = async (itemId: string) => {
+    const response = responseInputs[itemId]
+    if (!response || !response.trim()) {
+      alert('답변을 입력해주세요.')
+      return
+    }
+
+    const { submitUserResponse } = await import('../actions/request-item')
+    const result = await submitUserResponse(itemId, response)
+
+    if (result.success) {
+      alert('전송되었습니다.')
+      loadData()
+    } else {
+      alert('전송 실패: ' + result.error)
+    }
+  }
+
   const getStatusBadge = (req: Request) => {
     // 상품 준비중 상태 확인 (주문됨 + 입금완료)
     if (req.status === 'ordered' && req.payment_status === 'deposit_paid') {
@@ -411,10 +434,15 @@ export default function MyPage() {
                                 <div className="flex gap-2">
                                   <input
                                     type="text"
+                                    value={responseInputs[item.id] || ''}
+                                    onChange={(e) => handleResponseChange(item.id, e.target.value)}
                                     placeholder="답변을 입력해주세요"
                                     className="flex-1 px-3 py-2 border rounded text-xs"
                                   />
-                                  <button className="px-3 py-2 bg-yellow-500 text-white rounded text-xs font-bold hover:bg-yellow-600">
+                                  <button
+                                    onClick={() => handleSubmitResponse(item.id)}
+                                    className="px-3 py-2 bg-yellow-500 text-white rounded text-xs font-bold hover:bg-yellow-600"
+                                  >
                                     전송
                                   </button>
                                 </div>

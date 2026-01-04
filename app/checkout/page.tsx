@@ -7,6 +7,8 @@ import { submitManualOrder } from '../actions/payment' // Updated action
 import { createClient } from '../lib/supabase/client'
 import LoadingState from '../components/LoadingState'
 import { HO_CHI_MINH_CITY, HCMC_DISTRICTS } from '../lib/vn-location-data'
+import { calculateShippingFee, generateVietQRUrl } from '../utils/payment'
+import { SERVICE_FEE } from '../lib/constants'
 
 export default function CheckoutPage() {
     return (
@@ -23,7 +25,11 @@ function CheckoutContent() {
 
     const [loading, setLoading] = useState(true)
     const [items, setItems] = useState<any[]>([])
+    const [productAmount, setProductAmount] = useState(0)
+    const [shippingFee, setShippingFee] = useState(0)
+    const [serviceFee, setServiceFee] = useState(0)
     const [totalAmount, setTotalAmount] = useState(0)
+    const [qrUrl, setQrUrl] = useState('')
 
     // 배송지 정보
     // 배송지 정보
@@ -112,7 +118,7 @@ function CheckoutContent() {
 
             setItems(validityItems)
 
-            const total = validityItems.reduce((sum: number, item: any) => {
+            const productTotal = validityItems.reduce((sum: number, item: any) => {
                 const optionPrice = item.user_selected_options?.priceStr
                     ? parseInt(item.user_selected_options.priceStr)
                     : 0
@@ -121,7 +127,26 @@ function CheckoutContent() {
                 return sum + price * (item.user_quantity || 1)
             }, 0)
 
-            setTotalAmount(total)
+            // Shipping Fee Calculation
+            const totalWeight = validityItems.reduce((sum: number, item: any) => {
+                return sum + (item.admin_weight || 0) * (item.user_quantity || 1)
+            }, 0)
+            const shipping = calculateShippingFee(totalWeight);
+            const service = SERVICE_FEE;
+
+            const finalTotal = productTotal + shipping + service;
+
+            setProductAmount(productTotal)
+            setShippingFee(shipping)
+            setServiceFee(service)
+            setTotalAmount(finalTotal)
+
+            // Generate QR Code immediately (assuming deposit 70%?? No, QR is usually for FULL or Deposit? User said dynamic QR is needed)
+            // Assuming QR is for the Deposit Amount as per current logic (70%)
+            const deposit = Math.floor(finalTotal * 0.7);
+            const qr = generateVietQRUrl(deposit, `DEPOSIT ${requestId?.slice(0, 8)}`);
+            setQrUrl(qr);
+
         } else {
             alert('정보를 불러오는데 실패했습니다.')
             router.back()
@@ -216,15 +241,29 @@ function CheckoutContent() {
                         ))}
                     </div>
                     <div className="mt-6 pt-4 border-t border-slate-100">
-                        <div className="flex justify-between items-center mb-2">
-                            <span className="text-slate-600">총 주문 금액</span>
+                        <div className="flex justify-between items-center mb-2 text-sm">
+                            <span className="text-slate-600">상품 금액</span>
+                            <span className="font-medium text-slate-900">{productAmount.toLocaleString()} VND</span>
+                        </div>
+                        <div className="flex justify-between items-center mb-2 text-sm">
+                            <span className="text-slate-600">국제 배송비 (무게 기반)</span>
+                            <span className="font-medium text-slate-900">{shippingFee.toLocaleString()} VND</span>
+                        </div>
+                        {serviceFee > 0 && (
+                            <div className="flex justify-between items-center mb-2 text-sm">
+                                <span className="text-slate-600">서비스 수수료</span>
+                                <span className="font-medium text-slate-900">{serviceFee.toLocaleString()} VND</span>
+                            </div>
+                        )}
+                        <div className="flex justify-between items-center mb-2 pt-2 border-t border-dashed border-slate-200">
+                            <span className="text-slate-800 font-bold">총 합계</span>
                             <span className="text-lg font-bold text-slate-900">{totalAmount.toLocaleString()} VND</span>
                         </div>
-                        <div className="flex justify-between items-center mb-2 text-indigo-600">
+                        <div className="flex justify-between items-center mb-2 text-indigo-600 bg-indigo-50 p-3 rounded-lg mt-3">
                             <span className="font-bold">선결제 (70%)</span>
                             <span className="text-xl font-black">{depositAmount.toLocaleString()} VND</span>
                         </div>
-                        <div className="flex justify-between items-center text-slate-400 text-sm">
+                        <div className="flex justify-between items-center text-slate-400 text-sm px-3">
                             <span>수령 후 결제 (30%)</span>
                             <span>{finalAmount.toLocaleString()} VND</span>
                         </div>
@@ -237,12 +276,15 @@ function CheckoutContent() {
                     <h2 className="text-lg font-bold text-indigo-900 mb-4 border-b border-indigo-100 pb-2 relative z-10">입금 계좌 안내</h2>
 
                     <div className="flex flex-col md:flex-row gap-6 items-center relative z-10">
-                        <div className="w-40 h-40 bg-slate-100 rounded-xl flex items-center justify-center border border-slate-200">
-                            {/* Placeholder for QR Code */}
-                            <div className="text-center">
-                                <svg className="w-12 h-12 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
-                                <span className="text-xs text-slate-400 block">QR 코드 준비중</span>
-                            </div>
+                        <div className="w-40 h-40 bg-white rounded-xl flex items-center justify-center border border-slate-200 overflow-hidden">
+                            {/* Dynamic VietQR */}
+                            {qrUrl ? (
+                                <img src={qrUrl} alt="VietQR Payment" className="w-full h-full object-contain" />
+                            ) : (
+                                <div className="text-center">
+                                    <span className="text-xs text-slate-400 block">QR 생성 중...</span>
+                                </div>
+                            )}
                         </div>
                         <div className="flex-1 space-y-3">
                             <div>

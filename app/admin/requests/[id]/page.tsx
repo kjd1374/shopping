@@ -14,6 +14,7 @@ interface RequestItem {
   admin_price: number | null
   admin_options: { name: string; price: number }[] | null
   admin_capacity: string | null
+  admin_weight: number | null
   admin_color: string | null
   admin_etc: string | null
   admin_rerequest_note: string | null
@@ -38,6 +39,7 @@ interface ItemUpdate {
   price: string
   options: { name: string; price: string }[]
   capacity: string
+  weight: string // Adding weight to ItemUpdate
   color: string
   etc: string
   rerequestNote: string
@@ -79,6 +81,7 @@ export default function RequestDetailPage() {
               price: opt.price.toLocaleString('ko-KR')
             })) : [],
             capacity: item.admin_capacity || '',
+            weight: item.admin_weight ? item.admin_weight.toString() : '',
             color: item.admin_color || '',
             etc: item.admin_etc || '',
             rerequestNote: item.admin_rerequest_note || '',
@@ -166,6 +169,7 @@ export default function RequestDetailPage() {
           }))
 
         const capacity = data.capacity.trim() || null
+        const weight = data.weight.trim() ? parseFloat(data.weight) : null
         const color = data.color.trim() || null
         const etc = data.etc.trim() || null
         const rerequestNote = data.rerequestNote.trim() || null
@@ -178,7 +182,8 @@ export default function RequestDetailPage() {
           color,
           etc,
           rerequestNote,
-          data.itemStatus
+          data.itemStatus,
+          weight
         )
       })
 
@@ -425,6 +430,27 @@ export default function RequestDetailPage() {
                     </div>
                   </div>
 
+                  {/* 무게 입력 (New) */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-bold text-slate-700 mb-2">
+                      상품 무게 (배송비 계산용)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={itemUpdates[item.id]?.weight || ''}
+                        onChange={(e) => handleItemChange(item.id, 'weight', e.target.value)}
+                        placeholder="예: 0.5"
+                        className="w-full md:w-1/3 px-4 py-3 text-base rounded-lg border-2 border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-right"
+                      />
+                      <span className="text-slate-600 font-bold">kg</span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">
+                      * 입력 시 배송비가 자동 계산됩니다. (150,000 VND/kg)
+                    </p>
+                  </div>
+
                   {/* 기본 판매가 (Legacy/Fallback) */}
                   <div className="md:col-span-2">
                     <label className="block text-sm font-bold text-slate-700 mb-2">
@@ -580,6 +606,7 @@ export default function RequestDetailPage() {
                       }))
 
                     const capacity = data.capacity.trim() || null
+                    const weight = data.weight.trim() ? parseFloat(data.weight) : null
                     const color = data.color.trim() || null
                     const etc = data.etc.trim() || null
                     const rerequestNote = data.rerequestNote.trim() || null
@@ -592,7 +619,8 @@ export default function RequestDetailPage() {
                       color,
                       etc,
                       rerequestNote,
-                      data.itemStatus
+                      data.itemStatus,
+                      weight
                     )
                   })
 

@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/app/lib/supabase/server'
+import { sendAdminNotification } from '../lib/notifications'
 
 export interface RequestItem {
   url: string
@@ -62,6 +63,22 @@ export async function submitProductRequest(items: RequestItem[]) {
     if (itemsError) {
       console.error('Items insert error:', itemsError)
       throw new Error(`Item save failed: ${itemsError.message || itemsError.code || 'Unknown error'}`)
+    }
+
+    // 3. 관리자에게 알림 전송 (이메일)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      await sendAdminNotification({
+        type: 'NEW_REQUEST',
+        data: {
+          user_email: user?.email,
+          title: items[0]?.title,
+          quantity: items.length,
+          url: items[0]?.url
+        }
+      })
+    } catch (e) {
+      console.error('Notification failed:', e)
     }
 
     return { success: true, requestId }

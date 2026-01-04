@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/app/lib/supabase/server'
+import { sendAdminNotification } from '../lib/notifications'
 
 interface ManualOrderData {
     requestId: string
@@ -42,7 +43,22 @@ export async function submitManualOrder({
             throw new Error('주문 상태 업데이트에 실패했습니다. (권한 부족 또는 요청을 찾을 수 없음)')
         }
 
-        // 2. (Optional) 알림 시스템이 있다면 관리자에게 알림 전송
+        // 2. 관리자에게 알림 전송
+        try {
+            await sendAdminNotification({
+                type: 'NEW_ORDER',
+                data: {
+                    requestId,
+                    user_name: shippingAddress.name,
+                    amount: depositAmount + finalAmount,
+                    deposit: depositAmount,
+                    address: `${shippingAddress.address} ${shippingAddress.zipcode}`
+                }
+            })
+        } catch (error) {
+            console.error('Failed to send admin notification:', error)
+            // 알림 실패가 주문 실패로 이어지지 않도록 예외 무시
+        }
 
         return { success: true }
 
