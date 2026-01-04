@@ -231,8 +231,9 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
         alert(errorMsg)
         console.error('Submit failed:', result)
       }
-    } catch {
-      alert(t('request.error'))
+    } catch (e: any) {
+      console.error('Submit fatal error:', e)
+      alert(`Error detected: ${e?.message || JSON.stringify(e)}`)
     } finally {
       setSubmitLoading(false)
     }
