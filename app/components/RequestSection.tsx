@@ -232,8 +232,9 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
         console.error('Submit failed:', result)
       }
     } catch (e: any) {
-      console.error('Submit fatal error:', e)
-      alert(`Error detected: ${e?.message || JSON.stringify(e)}`)
+      console.error('Submit error:', e)
+      // 서버에서 보낸 에러 메시지가 있으면 보여주고, 없으면 기본 메시지
+      alert(e?.message || t('request.error'))
     } finally {
       setSubmitLoading(false)
     }
