@@ -2,6 +2,7 @@
 
 import { createClient } from '@/app/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { revalidatePath } from 'next/cache'
 
 // 요청 목록 조회
 export async function getRequests() {
@@ -241,6 +242,8 @@ export async function updateUserRole(userId: string, newRole: 'user' | 'partner'
       .eq('id', userId)
 
     if (error) throw error
+
+    revalidatePath('/admin/users')
     return { success: true }
   } catch (error: any) {
     console.error('Update role error:', error)

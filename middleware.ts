@@ -33,8 +33,9 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // 보호된 라우트
-  const protectedPaths = ['/request', '/mypage']
+  const protectedPaths = ['/request', '/mypage', '/partner']
   const adminPaths = ['/admin']
+  const partnerPaths = ['/partner']
 
   const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path))
   const isAdminPath = adminPaths.some((path) => request.nextUrl.pathname.startsWith(path))
@@ -51,8 +52,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  // 2. 관리자 권한 체크
-  if (isAdminPath && user) {
+  // 2. 관리자/파트너 권한 체크
+  const isPartnerPath = partnerPaths.some((path) => request.nextUrl.pathname.startsWith(path))
+
+  if ((isAdminPath || isPartnerPath) && user) {
     // 프로필에서 권한 조회
     const { data: profile } = await supabase
       .from('profiles')
@@ -60,8 +63,18 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    // 관리자가 아니면 메인으로 리다이렉트
-    if (!profile || profile.role !== 'admin') {
+    // 권한 확인
+    if (!profile) {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+
+    // 관리자 페이지는 admin만
+    if (isAdminPath && profile.role !== 'admin') {
+      return NextResponse.redirect(new URL('/', request.url))
+    }
+
+    // 파트너 페이지는 admin 또는 partner만
+    if (isPartnerPath && profile.role !== 'admin' && profile.role !== 'partner') {
       return NextResponse.redirect(new URL('/', request.url))
     }
   }
