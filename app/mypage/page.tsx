@@ -90,9 +90,7 @@ export default function MyPage() {
           user_selected_options,
           user_quantity,
           item_status,
-          item_status,
-          user_response,
-          is_hidden_by_user
+          user_response
         )
       `)
       .eq('user_id', currentUser.id)
@@ -121,14 +119,7 @@ export default function MyPage() {
 
       setRequests(requestsData)
 
-      // Filter out empty requests if needed, but here we just filter items during render or here?
-      // Better to filter items here to avoid calculating totals for hidden items
-      const filteredRequests = requestsData.map(req => ({
-        ...req,
-        request_items: req.request_items.filter((item: any) => !item.is_hidden_by_user)
-      })).filter(req => req.request_items.length > 0) // Remove requests with no visible items
 
-      setRequests(filteredRequests)
 
       // 2. 초기 선택값 설정
       const initialSelections: Record<string, {
@@ -405,6 +396,7 @@ export default function MyPage() {
         ) : (
           <div className="space-y-4">
             {/* 상단 일괄 삭제 버튼 */}
+            {/* 상단 일괄 삭제 버튼 (DB 업데이트 전까지 임시 비활성화)
             {selectedDeleteItems.size > 0 && (
               <div className="flex justify-end mb-2">
                 <button
@@ -414,7 +406,7 @@ export default function MyPage() {
                   선택 삭제 ({selectedDeleteItems.size})
                 </button>
               </div>
-            )}
+            )} */}
 
             {requests.map(req => (
               <div key={req.id} className="bg-white p-4 rounded shadow border">
@@ -463,15 +455,15 @@ export default function MyPage() {
                   {req.request_items.map(item => (
                     <div key={item.id} className="border-t pt-4 mt-2 first:border-0 first:pt-0">
                       <div className="flex gap-4 items-start">
-                        {/* 삭제 선택 체크박스 */}
-                        <div className="pt-8">
+                        {/* 삭제 선택 체크박스 (임시 비활성화) */}
+                        {/* <div className="pt-8">
                           <input
                             type="checkbox"
                             checked={selectedDeleteItems.has(item.id)}
                             onChange={() => toggleDeleteItem(item.id)}
                             className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                           />
-                        </div>
+                        </div> */}
 
                         {/* 썸네일 */}
                         <div className="w-20 h-20 bg-slate-500 rounded-lg flex-shrink-0 overflow-hidden border">
