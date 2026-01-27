@@ -619,7 +619,7 @@ export default function MyPage() {
                   ))}
 
                   {/* 실시간 견적 합계 & 결제 버튼 */}
-                  {(req.status === 'reviewed' || req.request_items.some(i => i.item_status === 'approved')) && (
+                  {req.status === 'reviewed' && (
                     <div className="mt-3 pt-3 border-t border-slate-100">
                       <div className="bg-indigo-50 p-3 rounded-lg mb-3">
                         <div className="flex justify-between items-center mb-1 text-xs text-slate-500">
