@@ -3,12 +3,13 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getRequestDetails } from '../actions/admin'
-import { submitManualOrder } from '../actions/payment' // Updated action
+import { submitManualOrder } from '../actions/payment'
 import { createClient } from '../lib/supabase/client'
 import LoadingState from '../components/LoadingState'
 import { HO_CHI_MINH_CITY, HCMC_DISTRICTS } from '../lib/vn-location-data'
 import { calculateShippingFee, generateVietQRUrl } from '../utils/payment'
 import { SERVICE_FEE } from '../lib/constants'
+import { useLanguage } from '../contexts/LanguageContext'
 
 export default function CheckoutPage() {
     return (
@@ -19,6 +20,7 @@ export default function CheckoutPage() {
 }
 
 function CheckoutContent() {
+    const { t } = useLanguage()
     const router = useRouter()
     const searchParams = useSearchParams()
     const requestId = searchParams.get('requestId')
@@ -32,7 +34,6 @@ function CheckoutContent() {
     const [qrUrl, setQrUrl] = useState('')
 
     // 배송지 정보
-    // 배송지 정보
     const [address, setAddress] = useState({
         name: '',
         phone: '',
@@ -44,8 +45,6 @@ function CheckoutContent() {
 
     useEffect(() => {
         if (!requestId) {
-            // 초기 렌더링 시에는 requestId가 없을 수 있으므로 loading 상태에서 처리하거나
-            // Suspense가 해결해줌. 하지만 확실히 하기 위해 체크.
             return
         }
         loadData()
@@ -78,17 +77,15 @@ function CheckoutContent() {
             if (profile.address) {
                 const parts = profile.address.split(',').map((s: string) => s.trim())
                 // Expected format: "Street, Ward, District, City"
-                // Check if last part is HCMC
                 if (parts.length >= 4 && parts[parts.length - 1].includes('Hồ Chí Minh')) {
                     setAddress(prev => ({
                         ...prev,
                         city: HO_CHI_MINH_CITY,
                         district: parts[parts.length - 2] || '',
                         ward: parts[parts.length - 3] || '',
-                        street: parts.slice(0, parts.length - 3).join(', ') // Join remaining first parts
+                        street: parts.slice(0, parts.length - 3).join(', ')
                     }))
                 } else {
-                    // Legacy or generic address
                     setAddress(prev => ({
                         ...prev,
                         street: profile.address || ''
@@ -101,18 +98,11 @@ function CheckoutContent() {
         const result = await getRequestDetails(requestId)
 
         if (result.success) {
-            // 필터링 및 가격 계산 로직 개선
             const validityItems = (result.items || []).filter((item: any) => {
-                // 가격 확인
-                // 1. 사용자가 선택한 옵션 가격 (priceStr)
-                // 2. 관리자가 설정한 기본 단가 (admin_price)
                 const optionPrice = item.user_selected_options?.priceStr
                     ? parseInt(item.user_selected_options.priceStr)
                     : 0
-
                 const finalPrice = optionPrice > 0 ? optionPrice : (item.admin_price || 0)
-
-                // 가격이 0 이상인 경우만 유효 (또는 견적 대기 중인 상품 제외)
                 return finalPrice > 0
             })
 
@@ -123,11 +113,9 @@ function CheckoutContent() {
                     ? parseInt(item.user_selected_options.priceStr)
                     : 0
                 const price = optionPrice > 0 ? optionPrice : (item.admin_price || 0)
-
                 return sum + price * (item.user_quantity || 1)
             }, 0)
 
-            // Shipping Fee Calculation
             const totalWeight = validityItems.reduce((sum: number, item: any) => {
                 return sum + (item.admin_weight || 0) * (item.user_quantity || 1)
             }, 0)
@@ -141,14 +129,12 @@ function CheckoutContent() {
             setServiceFee(service)
             setTotalAmount(finalTotal)
 
-            // Generate QR Code immediately (assuming deposit 70%?? No, QR is usually for FULL or Deposit? User said dynamic QR is needed)
-            // Assuming QR is for the Deposit Amount as per current logic (70%)
             const deposit = Math.floor(finalTotal * 0.7);
             const qr = generateVietQRUrl(deposit, `DEPOSIT ${requestId?.slice(0, 8)}`);
             setQrUrl(qr);
 
         } else {
-            alert('정보를 불러오는데 실패했습니다.')
+            alert(t('request.fetchFailed'))
             router.back()
         }
         setLoading(false)
@@ -156,34 +142,39 @@ function CheckoutContent() {
 
     const handleSubmit = async () => {
         if (!address.name || !address.phone || !address.district || !address.ward || !address.street) {
-            alert('배송지 정보를 모두 입력해주세요.')
+            alert(t('checkout.alert.fillAll'))
             return
         }
 
-        if (!confirm('입금 정보를 확인하셨나요? 주문을 제출합니다.')) return
+        if (!confirm(t('checkout.alert.confirm'))) return
 
         const depositAmount = Math.floor(totalAmount * 0.7)
         const finalAmount = totalAmount - depositAmount
 
         const fullAddress = `${address.street}, ${address.ward}, ${address.district}, ${address.city}`
 
-        const result = await submitManualOrder({
-            requestId: requestId!,
-            shippingAddress: {
-                name: address.name,
-                phone: address.phone,
-                address: fullAddress,
-                zipcode: '700000' // HCMC default zipcode
-            },
-            depositAmount, // 70%
-            finalAmount   // 30%
-        })
+        try {
+            const result = await submitManualOrder({
+                requestId: requestId!,
+                shippingAddress: {
+                    name: address.name,
+                    phone: address.phone,
+                    address: fullAddress,
+                    zipcode: '700000'
+                },
+                depositAmount,
+                finalAmount
+            })
 
-        if (result.success) {
-            alert('주문이 접수되었습니다! 안내된 계좌로 입금해주세요.')
-            router.replace('/mypage')
-        } else {
-            alert('주문 접수 실패: ' + result.error)
+            if (result.success) {
+                alert(t('checkout.alert.success'))
+                router.replace('/mypage')
+            } else {
+                alert(t('checkout.alert.fail') + result.error)
+            }
+        } catch (e: any) {
+            console.error(e)
+            alert(t('checkout.alert.fail') + e.message)
         }
     }
 
@@ -195,11 +186,11 @@ function CheckoutContent() {
     return (
         <main className="min-h-screen bg-slate-50 py-12 px-4">
             <div className="max-w-3xl mx-auto space-y-8">
-                <h1 className="text-3xl font-bold text-slate-900">주문서 작성</h1>
+                <h1 className="text-3xl font-bold text-slate-900">{t('checkout.title')}</h1>
 
                 {/* 1. 주문 상품 확인 */}
                 <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h2 className="text-lg font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">주문 상품</h2>
+                    <h2 className="text-lg font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">{t('checkout.orderItems')}</h2>
                     <div className="space-y-4">
                         {items.map((item: any) => (
                             <div key={item.id} className="flex gap-4">
@@ -209,7 +200,7 @@ function CheckoutContent() {
                                 <div className="flex-1">
                                     <h3 className="text-sm font-bold text-slate-800 line-clamp-1">{item.og_title}</h3>
                                     <p className="text-xs text-slate-500 mt-1">
-                                        옵션: {
+                                        {t('checkout.option')}: {
                                             item.user_selected_options?.optionName
                                                 ? item.user_selected_options.optionName
                                                 : (
@@ -222,7 +213,7 @@ function CheckoutContent() {
                                         }
                                     </p>
                                     <div className="flex justify-between items-center mt-2">
-                                        <span className="text-xs text-slate-600">수량: {item.user_quantity || 1}개</span>
+                                        <span className="text-xs text-slate-600">{t('checkout.quantity')}: {item.user_quantity || 1}</span>
                                         <span className="text-sm font-bold text-slate-900">
                                             {(
                                                 (() => {
@@ -242,29 +233,29 @@ function CheckoutContent() {
                     </div>
                     <div className="mt-6 pt-4 border-t border-slate-100">
                         <div className="flex justify-between items-center mb-2 text-sm">
-                            <span className="text-slate-600">상품 금액</span>
+                            <span className="text-slate-600">{t('admin.totalAmount')} ({t('language.products')})</span>
                             <span className="font-medium text-slate-900">{productAmount.toLocaleString()} VND</span>
                         </div>
                         <div className="flex justify-between items-center mb-2 text-sm">
-                            <span className="text-slate-600">국제 배송비 (무게 기반)</span>
+                            <span className="text-slate-600">{t('admin.weight')}</span>
                             <span className="font-medium text-slate-900">{shippingFee.toLocaleString()} VND</span>
                         </div>
                         {serviceFee > 0 && (
                             <div className="flex justify-between items-center mb-2 text-sm">
-                                <span className="text-slate-600">서비스 수수료</span>
+                                <span className="text-slate-600">Service Fee</span>
                                 <span className="font-medium text-slate-900">{serviceFee.toLocaleString()} VND</span>
                             </div>
                         )}
                         <div className="flex justify-between items-center mb-2 pt-2 border-t border-dashed border-slate-200">
-                            <span className="text-slate-800 font-bold">총 합계</span>
+                            <span className="text-slate-800 font-bold">{t('checkout.totalOrder')}</span>
                             <span className="text-lg font-bold text-slate-900">{totalAmount.toLocaleString()} VND</span>
                         </div>
                         <div className="flex justify-between items-center mb-2 text-indigo-600 bg-indigo-50 p-3 rounded-lg mt-3">
-                            <span className="font-bold">선결제 (70%)</span>
+                            <span className="font-bold">{t('checkout.deposit')}</span>
                             <span className="text-xl font-black">{depositAmount.toLocaleString()} VND</span>
                         </div>
                         <div className="flex justify-between items-center text-slate-400 text-sm px-3">
-                            <span>수령 후 결제 (30%)</span>
+                            <span>{t('checkout.finalPayment')}</span>
                             <span>{finalAmount.toLocaleString()} VND</span>
                         </div>
                     </div>
@@ -273,7 +264,7 @@ function CheckoutContent() {
                 {/* 2. 입금 정보 (QR Code) */}
                 <section className="bg-white p-6 rounded-2xl shadow-sm border border-indigo-100 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -mr-16 -mt-16 z-0"></div>
-                    <h2 className="text-lg font-bold text-indigo-900 mb-4 border-b border-indigo-100 pb-2 relative z-10">입금 계좌 안내</h2>
+                    <h2 className="text-lg font-bold text-indigo-900 mb-4 border-b border-indigo-100 pb-2 relative z-10">{t('checkout.depositInfo')}</h2>
 
                     <div className="flex flex-col md:flex-row gap-6 items-center relative z-10">
                         <div className="w-40 h-40 bg-white rounded-xl flex items-center justify-center border border-slate-200 overflow-hidden">
@@ -282,29 +273,29 @@ function CheckoutContent() {
                                 <img src={qrUrl} alt="VietQR Payment" className="w-full h-full object-contain" />
                             ) : (
                                 <div className="text-center">
-                                    <span className="text-xs text-slate-400 block">QR 생성 중...</span>
+                                    <span className="text-xs text-slate-400 block">{t('checkout.qrStart')}</span>
                                 </div>
                             )}
                         </div>
                         <div className="flex-1 space-y-3">
                             <div>
-                                <p className="text-xs text-slate-500 font-bold">은행명</p>
+                                <p className="text-xs text-slate-500 font-bold">{t('checkout.bankName')}</p>
                                 <p className="text-lg font-bold text-slate-800">VietComBank</p>
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500 font-bold">계좌번호</p>
+                                <p className="text-xs text-slate-500 font-bold">{t('checkout.accountNumber')}</p>
                                 <div className="flex items-center gap-2">
                                     <p className="text-xl font-black text-indigo-600 tracking-wider">1234-5678-9012</p>
-                                    <button className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-600 hover:bg-slate-200">복사</button>
+                                    <button className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-600 hover:bg-slate-200">{t('checkout.copy')}</button>
                                 </div>
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500 font-bold">예금주</p>
+                                <p className="text-xs text-slate-500 font-bold">{t('checkout.holder')}</p>
                                 <p className="text-base font-medium text-slate-800">KIM MIN SU (Vina-K)</p>
                             </div>
                             <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200 text-xs text-yellow-800 mt-2">
-                                ⚠️ <strong>입금자명</strong>을 <strong>주문자명</strong>과 동일하게 해주세요.<br />
-                                입금이 확인되면 준비가 시작됩니다.
+                                {t('checkout.notice')}<br />
+                                {t('checkout.notice2')}
                             </div>
                         </div>
                     </div>
@@ -312,30 +303,30 @@ function CheckoutContent() {
 
                 {/* 3. 배송지 정보 입력 */}
                 <section className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <h2 className="text-lg font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">배송지 정보</h2>
+                    <h2 className="text-lg font-bold text-slate-900 mb-4 border-b border-slate-100 pb-2">{t('checkout.shippingInfo')}</h2>
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">받는 분</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">{t('checkout.receiver')}</label>
                             <input
                                 type="text"
                                 value={address.name}
                                 onChange={e => setAddress({ ...address, name: e.target.value })}
                                 className="w-full p-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500"
-                                placeholder="이름을 입력하세요"
+                                placeholder={t('checkout.namePlaceholder')}
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">연락처</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">{t('checkout.contact')}</label>
                             <input
                                 type="tel"
                                 value={address.phone}
                                 onChange={e => setAddress({ ...address, phone: e.target.value })}
                                 className="w-full p-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500"
-                                placeholder="010-0000-0000"
+                                placeholder={t('checkout.contactPlaceholder')}
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 mb-1">주소 (Address)</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-1">{t('checkout.address')}</label>
 
                             {/* City - Fixed */}
                             <div className="mb-2">
@@ -357,7 +348,7 @@ function CheckoutContent() {
                                         onChange={e => setAddress({ ...address, district: e.target.value })}
                                         className="w-full p-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500 bg-white"
                                     >
-                                        <option value="">선택하세요</option>
+                                        <option value="">{t('mypage.selectOption')}</option>
                                         {HCMC_DISTRICTS.map(d => (
                                             <option key={d} value={d}>{d}</option>
                                         ))}
@@ -372,7 +363,7 @@ function CheckoutContent() {
                                         value={address.ward}
                                         onChange={e => setAddress({ ...address, ward: e.target.value })}
                                         className="w-full p-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500"
-                                        placeholder="Phường/Xã 입력"
+                                        placeholder="Phường/Xã"
                                     />
                                 </div>
                             </div>
@@ -385,7 +376,7 @@ function CheckoutContent() {
                                     value={address.street}
                                     onChange={e => setAddress({ ...address, street: e.target.value })}
                                     className="w-full p-3 rounded-xl border border-slate-200 text-slate-900 focus:outline-none focus:border-indigo-500"
-                                    placeholder="예: 123 Nguyen Hue"
+                                    placeholder={t('checkout.addressDetailPlaceholder')}
                                 />
                             </div>
                         </div>
@@ -397,7 +388,7 @@ function CheckoutContent() {
                     onClick={handleSubmit}
                     className="w-full py-5 bg-gradient-to-r from-slate-900 to-slate-800 text-white text-lg font-bold rounded-2xl hover:shadow-xl transition-all active:scale-[0.98]"
                 >
-                    입금 확인 요청하기 (선금 {depositAmount.toLocaleString()} VND)
+                    {t('checkout.requestDeposit')} ({depositAmount.toLocaleString()} VND)
                 </button>
             </div>
         </main>

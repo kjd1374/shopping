@@ -225,22 +225,22 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-slate-50 pb-20 relative">
       {/* 헤더 */}
-      <header className="bg-white sticky top-0 z-20 border-b border-slate-100 px-4 h-14 flex items-center justify-between shadow-sm">
-        <h1 className="text-lg font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-indigo-600">
+      <header className="bg-white sticky top-0 z-20 border-b border-slate-100 px-4 h-12 flex items-center justify-between shadow-sm">
+        <h1 className="text-base font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-indigo-600">
           {t('header.title')}
         </h1>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {isLoggedIn ? (
             <button
               onClick={() => router.push('/mypage')}
-              className="text-xs font-bold bg-slate-900 text-white px-3 py-1.5 rounded-full shadow-md active:scale-95 transition-transform"
+              className="text-[10px] font-bold bg-slate-900 text-white px-2.5 py-1 rounded-full shadow-md active:scale-95 transition-transform"
             >
               {t('header.myRequests')}
             </button>
           ) : (
             <button
               onClick={() => router.push('/login')}
-              className="text-xs font-bold bg-indigo-600 text-white px-3 py-1.5 rounded-full shadow-md active:scale-95 transition-transform"
+              className="text-[10px] font-bold bg-indigo-600 text-white px-2.5 py-1 rounded-full shadow-md active:scale-95 transition-transform"
             >
               로그인
             </button>
@@ -249,7 +249,7 @@ export default function Home() {
           {isLoggedIn && (
             <button
               onClick={handleLogout}
-              className="text-xs font-bold text-slate-500 hover:text-red-500 px-2 transition-colors whitespace-nowrap"
+              className="text-[10px] font-bold text-slate-500 hover:text-red-500 px-1.5 transition-colors whitespace-nowrap"
             >
               Log Out
             </button>
@@ -261,10 +261,10 @@ export default function Home() {
         {/* 스마트 견적 요청 섹션 (검색/요청) - 최상단 배치 */}
         <RequestSection ref={requestSectionRef} />
 
-        <hr className="border-slate-100 my-4" />
+        <hr className="border-slate-100 my-2" />
 
         {/* 탭 메뉴 (메인 카테고리) */}
-        <div className="flex p-1 mx-4 mt-2 mb-2 bg-slate-200/50 rounded-xl">
+        <div className="flex p-0.5 mx-4 mt-1 mb-1 bg-slate-200/50 rounded-lg">
           {(['beauty', 'fashion'] as Category[]).map((tab) => (
             <button
               key={tab}
@@ -274,7 +274,7 @@ export default function Home() {
                 if (tab === 'fashion') setSubCategory(fashionSubCategories[0])
                 if (tab === 'beauty') setSubCategory(beautySubCategories[0])
               }}
-              className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${category === tab
+              className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${category === tab
                 ? 'bg-white text-slate-900 shadow-sm'
                 : 'text-slate-400 hover:text-slate-600'
                 }`}
@@ -285,13 +285,13 @@ export default function Home() {
         </div>
 
         {/* 서브 카테고리 (그리드 레이아웃) */}
-        <div className="px-4 mb-6">
-          <div className="grid grid-cols-4 gap-2">
+        <div className="px-4 mb-4">
+          <div className="grid grid-cols-4 gap-1">
             {(category === 'beauty' ? beautySubCategories : fashionSubCategories).map((sub) => (
               <button
                 key={sub.id}
                 onClick={() => setSubCategory(sub)}
-                className={`px-2 py-2 text-[11px] font-bold rounded-lg border transition-all text-center truncate ${subCategory.id === sub.id
+                className={`px-1 py-1.5 text-[10px] font-bold rounded-md border transition-all text-center truncate ${subCategory.id === sub.id
                   ? 'bg-slate-800 text-white border-slate-800'
                   : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'
                   }`}
@@ -303,50 +303,50 @@ export default function Home() {
         </div>
 
         {/* 랭킹 섹션 */}
-        <section className="px-4 mb-8">
-          <div className="flex items-baseline justify-between mb-4 px-1">
-            <h2 className="text-lg font-bold text-slate-800">
+        <section className="px-4 mb-4">
+          <div className="flex items-baseline justify-between mb-2 px-1">
+            <h2 className="text-sm font-bold text-slate-800">
               {category === 'beauty' ? t('ranking.title.beauty') : t('ranking.title.fashion')}
             </h2>
-            <span className="text-xs text-slate-400 font-medium">{t('ranking.top10')}</span>
+            <span className="text-[10px] text-slate-400 font-medium">{t('ranking.top10')}</span>
           </div>
 
           {loading || isScraping ? (
-            <div className="flex gap-3 overflow-x-hidden">
+            <div className="flex gap-2 overflow-x-hidden">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="w-32 flex-shrink-0 aspect-[3/4] bg-slate-200 rounded-xl animate-pulse flex items-center justify-center">
-                  {i === 1 && isScraping && <span className="text-xs text-slate-500 font-bold animate-bounce">{t('ranking.loading')}</span>}
+                <div key={i} className="w-28 flex-shrink-0 aspect-[3/4] bg-slate-200 rounded-lg animate-pulse flex items-center justify-center">
+                  {i === 1 && isScraping && <span className="text-[10px] text-slate-500 font-bold animate-bounce">{t('ranking.loading')}</span>}
                 </div>
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="py-12 text-center bg-white rounded-2xl border border-slate-100 border-dashed">
-              <p className="text-slate-400 text-sm">
+            <div className="py-8 text-center bg-white rounded-xl border border-slate-100 border-dashed">
+              <p className="text-slate-400 text-xs">
                 {category === 'fashion' ? t('ranking.fashion.empty') : t('ranking.empty')}
               </p>
               {/* 데이터 없음 - 자동 패치 중이면 안 보일 수 있으나... */}
               <button
                 onClick={() => handleUpdateRanking(false)}
-                className="mt-3 text-xs text-blue-500 underline font-bold"
+                className="mt-2 text-[10px] text-blue-500 underline font-bold"
               >
                 {t('ranking.fetch')}
               </button>
             </div>
           ) : (
-            <div className="flex gap-3 overflow-x-auto pb-6 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
+            <div className="flex gap-2 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide snap-x snap-mandatory">
               {products.map((product) => (
                 <div
                   key={product.id}
-                  className="group relative w-36 flex-shrink-0 snap-start flex flex-col"
+                  className="group relative w-28 flex-shrink-0 snap-start flex flex-col"
                 >
-                  <div className="relative w-full aspect-[3/4] rounded-xl overflow-hidden bg-white shadow-sm border border-slate-100 mb-2">
+                  <div className="relative w-full aspect-[3/4] rounded-lg overflow-hidden bg-white shadow-sm border border-slate-100 mb-1.5">
                     <img
                       src={product.image}
                       alt={product.title}
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
-                    <div className="absolute top-0 left-0 w-8 h-8 flex items-center justify-center bg-black/80 text-white font-bold text-sm rounded-br-xl backdrop-blur-sm">
+                    <div className="absolute top-0 left-0 w-6 h-6 flex items-center justify-center bg-black/80 text-white font-bold text-xs rounded-br-lg backdrop-blur-sm">
                       {product.rank}
                     </div>
                   </div>
@@ -355,13 +355,13 @@ export default function Home() {
                     <p className="text-[10px] text-slate-500 font-bold mb-0.5 truncate">
                       {product.brand}
                     </p>
-                    <h3 className="text-xs font-medium text-slate-900 line-clamp-2 h-8 leading-tight mb-2">
+                    <h3 className="text-[11px] font-medium text-slate-900 line-clamp-2 h-7 leading-tight mb-1.5">
                       {product.title}
                     </h3>
 
                     <button
                       onClick={() => handleRequest(product)}
-                      className="w-full py-1.5 bg-white border border-slate-200 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all"
+                      className="w-full py-1 bg-white border border-slate-200 text-slate-600 text-[10px] font-bold rounded-md hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all"
                     >
                       {t('ranking.button')}
                     </button>
@@ -369,7 +369,7 @@ export default function Home() {
                       href={product.origin_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block w-full text-center py-1.5 mt-1.5 bg-slate-50 border border-slate-200 text-slate-500 text-[10px] font-bold rounded-lg hover:bg-slate-100 transition-all no-underline"
+                      className="block w-full text-center py-1 mt-1 bg-slate-50 border border-slate-200 text-slate-500 text-[10px] font-bold rounded-md hover:bg-slate-100 transition-all no-underline"
                     >
                       {t('ranking.viewDetails')}
                     </a>
@@ -380,7 +380,7 @@ export default function Home() {
           )}
         </section>
 
-        <hr className="border-slate-100 my-8" />
+        <hr className="border-slate-100 my-4" />
 
         {/* 실시간 활동 내역 (더미 데이터) */}
         <RecentActivity />
@@ -391,13 +391,13 @@ export default function Home() {
       <button
         onClick={() => handleUpdateRanking(false)}
         disabled={isScraping}
-        className={`fixed bottom-4 right-4 bg-slate-800 text-white p-3 rounded-full shadow-lg z-50 transition-all active:scale-90 ${isScraping ? 'opacity-50 cursor-not-allowed' : 'hover:bg-black'}`}
+        className={`fixed bottom-4 right-4 bg-slate-800 text-white p-2.5 rounded-full shadow-lg z-50 transition-all active:scale-90 ${isScraping ? 'opacity-50 cursor-not-allowed' : 'hover:bg-black'}`}
         title="랭킹 업데이트"
       >
         {isScraping ? (
-          <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
+          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
         ) : (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
         )}
       </button>
     </main>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { getRequestDetails, updateRequestItem, confirmRequest } from '../../../actions/admin'
 import { confirmDeposit } from '../../../actions/payment'
+import { useLanguage } from '../../../contexts/LanguageContext'
 
 interface RequestItem {
   id: string
@@ -39,7 +40,7 @@ interface ItemUpdate {
   price: string
   options: { name: string; price: string }[]
   capacity: string
-  weight: string // Adding weight to ItemUpdate
+  weight: string
   color: string
   etc: string
   rerequestNote: string
@@ -47,6 +48,7 @@ interface ItemUpdate {
 }
 
 export default function RequestDetailPage() {
+  const { t } = useLanguage()
   const params = useParams()
   const router = useRouter()
   const requestId = params.id as string
@@ -195,7 +197,6 @@ export default function RequestDetailPage() {
         return
       }
 
-      // 요청 상태를 reviewed로 변경
       const confirmResult = await confirmRequest(requestId)
       if (confirmResult.success) {
         alert('견적이 승인되었습니다!')
@@ -244,7 +245,7 @@ export default function RequestDetailPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* 헤더 */}
         <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -252,11 +253,11 @@ export default function RequestDetailPage() {
               onClick={() => router.push('/admin')}
               className="text-sm text-slate-600 hover:text-slate-900 mb-2 flex items-center gap-1"
             >
-              ← 목록으로
+              {t('admin.back')}
             </button>
-            <h1 className="text-2xl font-black text-slate-900">요청 상세</h1>
+            <h1 className="text-2xl font-black text-slate-900">{t('admin.requestDetail')}</h1>
             <p className="text-sm text-slate-500 mt-1">
-              요청일: {new Date(request.created_at).toLocaleString('ko-KR')}
+              {t('admin.requestDate')}: {new Date(request.created_at).toLocaleString('ko-KR')}
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -268,7 +269,7 @@ export default function RequestDetailPage() {
                   : 'bg-green-100 text-green-800'
                 }`}
             >
-              {request.status === 'pending' ? '대기중' : request.status === 'reviewed' ? '승인완료' : '주문완료'}
+              {request.status === 'pending' ? t('admin.status.pending') : request.status === 'reviewed' ? t('admin.status.reviewed') : t('admin.status.ordered')}
             </span>
           </div>
         </div>
@@ -277,48 +278,77 @@ export default function RequestDetailPage() {
         {request.status === 'ordered' && (
           <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-6 mb-8">
             <h2 className="text-lg font-bold text-indigo-900 mb-4 flex items-center gap-2">
-              📦 주문 및 결제 정보
+              📦 {t('admin.paymentInfo')}
               {request.payment_status === 'deposit_paid' && (
-                <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">입금완료 ✅</span>
+                <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">{t('admin.depositPaid')}</span>
               )}
               {request.payment_status === 'deposit_pending' && (
-                <span className="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">입금대기 ⏳</span>
+                <span className="text-xs bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full">{t('admin.depositPending')}</span>
               )}
             </h2>
+
+            {/* Payment History Display */}
+            {request.shipping_address?.paymentHistory && request.shipping_address.paymentHistory.length > 0 && (
+              <div className="mb-4 bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+                <h3 className="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Previous Payments</h3>
+                <div className="space-y-2">
+                  {request.shipping_address.paymentHistory.map((hist: any, idx: number) => (
+                    <div key={idx} className="flex justify-between items-center text-sm bg-slate-50 p-2 rounded">
+                      <span className="text-slate-500 text-xs">{new Date(hist.date).toLocaleDateString()}</span>
+                      <span className="font-bold text-slate-700">
+                        {hist.amount?.toLocaleString()} VND <span className="text-green-600 text-xs">(Paid)</span>
+                      </span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between items-center text-sm pt-2 border-t border-slate-200 mt-2">
+                    <span className="text-slate-900 font-bold">Total Previous Paid</span>
+                    {/* Tip: The last entry in history represents the cumulative paid amount at that time */}
+                    <span className="font-bold text-green-600">
+                      {request.shipping_address.paymentHistory[request.shipping_address.paymentHistory.length - 1].amount.toLocaleString()} VND
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* 결제 정보 */}
               <div className="bg-white p-4 rounded-lg shadow-sm">
                 <h3 className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wider">결제 내역</h3>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">청구된 선금 (70%)</span>
-                    <span className="font-bold text-indigo-600">{request.deposit_amount?.toLocaleString()} VND</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">총 주문 금액</span>
-                    <span className="font-medium">{request.final_amount?.toLocaleString()} VND</span>
-                  </div>
-                  <div className="pt-3 mt-3 border-t border-slate-100 flex justify-between items-center">
-                    <span className="text-slate-600 font-bold">입금 상태</span>
-                    {request.payment_status === 'deposit_pending' ? (
-                      <button
-                        onClick={handleConfirmDeposit}
-                        disabled={saving}
-                        className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm"
-                      >
-                        입금 확인 처리 (Click)
-                      </button>
-                    ) : (
-                      <span className="text-green-600 font-bold">확인 완료</span>
-                    )}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-600">{t('admin.depositAmount')}</span>
+                      <span className="font-bold text-indigo-600">
+                        {request.deposit_amount ? request.deposit_amount.toLocaleString() : 0} VND
+                        <span className="text-xs text-slate-400 font-normal ml-1">(70%)</span>
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-600">{t('admin.totalAmount')}</span>
+                      <span className="font-medium text-slate-900">{request.final_amount?.toLocaleString()} VND</span>
+                    </div>
+                    <div className="pt-3 mt-3 border-t border-slate-100 flex justify-between items-center">
+                      <span className="text-slate-600 font-bold">{t('admin.depositStatus')}</span>
+                      {request.payment_status === 'deposit_pending' ? (
+                        <button
+                          onClick={handleConfirmDeposit}
+                          disabled={saving}
+                          className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors shadow-sm"
+                        >
+                          {t('admin.depositConfirm')}
+                        </button>
+                      ) : (
+                        <span className="text-green-600 font-bold">{t('admin.confirmed')}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* 배송지 정보 */}
               <div className="bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wider">배송지 정보</h3>
+                <h3 className="text-sm font-bold text-slate-500 mb-3 uppercase tracking-wider">{t('admin.shippingInfo')}</h3>
                 {request.shipping_address ? (
                   <div className="space-y-1 text-sm text-slate-700">
                     <p><span className="font-bold text-slate-900">{request.shipping_address.name}</span> ({request.shipping_address.phone})</p>
@@ -375,7 +405,7 @@ export default function RequestDetailPage() {
                     )}
 
                     <div className="mt-3 text-sm text-slate-600">
-                      <span className="font-medium">요청 수량:</span> {item.user_quantity}개
+                      <span className="font-medium">{t('admin.requestQuantity')}:</span> {item.user_quantity}개
                     </div>
                   </div>
                 </div>
@@ -383,13 +413,12 @@ export default function RequestDetailPage() {
 
               {/* 하단: 관리자 입력 폼 */}
               <div className="p-6">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">
-                  관리자 입력
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-6">
+                  {t('admin.adminInput')}
                 </h3>
 
                 {/* 그리드 레이아웃 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* 판매가 (VND) */}
                   {/* 옵션 및 가격 설정 (New) */}
                   <div className="md:col-span-2 space-y-3">
                     <label className="block text-sm font-bold text-slate-700">
@@ -403,14 +432,14 @@ export default function RequestDetailPage() {
                             placeholder="옵션명 (예: 100ml)"
                             value={option.name}
                             onChange={(e) => handleOptionChange(item.id, idx, 'name', e.target.value)}
-                            className="flex-1 px-3 py-2 text-sm border rounded focus:outline-none focus:border-indigo-500"
+                            className="flex-1 px-3 py-2 text-sm border rounded focus:outline-none focus:border-indigo-500 text-slate-900 placeholder:text-slate-500"
                           />
                           <input
                             type="text"
                             placeholder="가격"
                             value={option.price}
                             onChange={(e) => handleOptionChange(item.id, idx, 'price', e.target.value)}
-                            className="w-32 px-3 py-2 text-sm border rounded focus:outline-none focus:border-indigo-500 text-right"
+                            className="w-32 px-3 py-2 text-sm border rounded focus:outline-none focus:border-indigo-500 text-right text-slate-900 placeholder:text-slate-500"
                           />
                           <span className="text-xs text-slate-500">VND</span>
                           <button
@@ -442,12 +471,12 @@ export default function RequestDetailPage() {
                         value={itemUpdates[item.id]?.weight || ''}
                         onChange={(e) => handleItemChange(item.id, 'weight', e.target.value)}
                         placeholder="예: 0.5"
-                        className="w-full md:w-1/3 px-4 py-3 text-base rounded-lg border-2 border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-right"
+                        className="w-full md:w-1/3 px-4 py-3 text-base rounded-lg border-2 border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-right text-slate-900 placeholder:text-slate-500"
                       />
                       <span className="text-slate-600 font-bold">kg</span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-1">
-                      * 입력 시 배송비가 자동 계산됩니다. (150,000 VND/kg)
+                    <p className="text-xs text-slate-500 mt-1">
+                      {t('admin.weightDesc')}
                     </p>
                   </div>
 
@@ -464,21 +493,21 @@ export default function RequestDetailPage() {
                         handleItemChange(item.id, 'price', formatted)
                       }}
                       placeholder="예: 500000"
-                      className="w-full px-4 py-4 text-base rounded-lg border-2 border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                      className="w-full px-4 py-4 text-base rounded-lg border-2 border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-slate-900 placeholder:text-slate-500"
                     />
                   </div>
 
                   {/* 레거시 문자열 옵션 (필요시 사용) */}
                   <div className="md:col-span-2">
-                    <p className="text-xs font-bold text-slate-400 mb-2 cursor-pointer hover:text-slate-600" onClick={(e) => {
+                    <p className="text-xs font-bold text-slate-500 mb-2 cursor-pointer hover:text-slate-700" onClick={(e) => {
                       const target = e.currentTarget.nextElementSibling;
                       if (target) target.classList.toggle('hidden');
                     }}>
-                      ▼ 구버전 옵션 입력창 열기 (단순 문자열)
+                      ▼ {t('admin.legacyOption')}
                     </p>
                     <div className="hidden grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg">
                       <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-1">용량 (구버전)</label>
+                        <label className="block text-xs font-bold text-slate-500 mb-1">{t('admin.capacity')}</label>
                         <input
                           type="text"
                           value={itemUpdates[item.id]?.capacity || ''}
@@ -487,7 +516,7 @@ export default function RequestDetailPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-1">색상 (구버전)</label>
+                        <label className="block text-xs font-bold text-slate-500 mb-1">{t('admin.color')}</label>
                         <input
                           type="text"
                           value={itemUpdates[item.id]?.color || ''}
@@ -496,7 +525,7 @@ export default function RequestDetailPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-bold text-slate-500 mb-1">기타 (구버전)</label>
+                        <label className="block text-xs font-bold text-slate-500 mb-1">{t('admin.etc')}</label>
                         <input
                           type="text"
                           value={itemUpdates[item.id]?.etc || ''}
@@ -507,18 +536,15 @@ export default function RequestDetailPage() {
                     </div>
                   </div>
 
-                  {/* 사용자 답변 확인 (정보 요청 상태일 때) */}
-                  {item.user_response && (
-                    <div className="md:col-span-2 bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-2">
-                      <h4 className="text-sm font-bold text-yellow-800 mb-1">📢 사용자 답변</h4>
-                      <p className="text-sm text-yellow-900">{item.user_response}</p>
-                    </div>
-                  )}
+                  <div className="md:col-span-2 bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-2">
+                    <h4 className="text-sm font-bold text-yellow-800 mb-1">{t('admin.userResponse')}</h4>
+                    <p className="text-sm text-yellow-900">{item.user_response}</p>
+                  </div>
 
                   {/* 구매 가능 여부 (상태 변경) */}
                   <div className="md:col-span-2">
                     <label className="block text-sm font-bold text-slate-700 mb-2">
-                      구매 상태 설정
+                      {t('admin.statusSetting')}
                     </label>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {/* 승인 (Approved) */}
@@ -530,7 +556,7 @@ export default function RequestDetailPage() {
                           : 'bg-white border-slate-200 text-slate-600 hover:border-blue-400'
                           }`}
                       >
-                        <span className="font-bold">✅ 승인 (구매가능)</span>
+                        <span className="font-bold">{t('admin.approve')}</span>
                       </button>
 
                       {/* 정보요청 (Needs Info) */}
@@ -542,7 +568,7 @@ export default function RequestDetailPage() {
                           : 'bg-white border-slate-200 text-slate-600 hover:border-yellow-400'
                           }`}
                       >
-                        <span className="font-bold">❓ 정보 요청</span>
+                        <span className="font-bold">{t('admin.needsInfo')}</span>
                       </button>
 
                       {/* 불가 (Rejected) */}
@@ -554,7 +580,7 @@ export default function RequestDetailPage() {
                           : 'bg-white border-slate-200 text-slate-600 hover:border-red-400'
                           }`}
                       >
-                        <span className="font-bold">⛔ 구매 불가</span>
+                        <span className="font-bold">{t('admin.reject')}</span>
                       </button>
                     </div>
                   </div>
@@ -569,7 +595,7 @@ export default function RequestDetailPage() {
                       onChange={(e) => handleItemChange(item.id, 'rerequestNote', e.target.value)}
                       placeholder="고객에게 보낼 안내 메시지를 입력하세요"
                       rows={4}
-                      className="w-full px-4 py-4 text-base rounded-lg border-2 border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-none"
+                      className="w-full px-4 py-4 text-base rounded-lg border-2 border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-none text-slate-900 placeholder:text-slate-500"
                     />
                   </div>
                 </div>
@@ -581,14 +607,14 @@ export default function RequestDetailPage() {
         {/* 하단 액션 바 */}
         <div className="mt-6 bg-white rounded-xl shadow-sm border border-slate-200 p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-sm text-slate-600">
-            총 <span className="font-bold text-slate-900">{items.length}</span>개 상품
+            {t('admin.totalProducts')} <span className="font-bold text-slate-900">{items.length}</span>개
           </div>
           <div className="flex gap-3 w-full md:w-auto">
             <button
               onClick={() => router.push('/admin')}
               className="flex-1 md:flex-none px-6 py-3 text-sm font-bold text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
             >
-              취소
+              {t('admin.cancel')}
             </button>
             <button
               onClick={async () => {
@@ -641,14 +667,14 @@ export default function RequestDetailPage() {
               disabled={saving}
               className="flex-1 md:flex-none px-6 py-3 text-base font-bold text-indigo-700 bg-indigo-100 rounded-lg hover:bg-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              임시 저장
+              {t('admin.tempSave')}
             </button>
             <button
               onClick={handleSaveAll}
-              disabled={saving || request.status !== 'pending'}
+              disabled={saving}
               className="flex-1 md:flex-none px-8 py-3 text-base font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
             >
-              {saving ? '저장 중...' : '견적 승인 완료 (Confirm)'}
+              {saving ? t('admin.saving') : t('admin.confirm')}
             </button>
           </div>
         </div>

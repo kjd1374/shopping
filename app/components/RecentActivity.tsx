@@ -53,7 +53,7 @@ export default function RecentActivity() {
     }, [])
 
     return (
-        <section className="px-4 mt-8 mb-8">
+        <section className="px-4 mt-4 mb-4">
             <style jsx global>{`
                 @keyframes scroll-vertical {
                     0% { transform: translateY(0); }
@@ -67,45 +67,45 @@ export default function RecentActivity() {
                 }
             `}</style>
 
-            <div className="flex items-center gap-2 mb-4 px-1">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <h2 className="text-lg font-bold text-slate-800">
+            <div className="flex items-center gap-2 mb-2 px-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                <h2 className="text-sm font-bold text-slate-800">
                     Live Activity
                 </h2>
-                <span className="text-xs font-medium text-slate-400 ml-auto">
+                <span className="text-[10px] font-medium text-slate-400 ml-auto">
                     Real-time
                 </span>
             </div>
 
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden h-[320px] relative">
+            <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden h-[200px] relative">
                 {/* 그라데이션 오버레이로 위아래 페이드 효과 */}
-                <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none" />
-                <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none" />
+                <div className="absolute top-0 left-0 right-0 h-6 bg-gradient-to-b from-white to-transparent z-10 pointer-events-none" />
+                <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white to-transparent z-10 pointer-events-none" />
 
                 <div className="animate-scroll-vertical">
                     <div className="divide-y divide-slate-50">
                         {displayActivities.map((activity, idx) => (
-                            <div key={`${activity.id}-${idx}`} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 min-w-[32px] rounded-full flex items-center justify-center text-xs font-bold ${activity.type === 'purchase' ? 'bg-indigo-100 text-indigo-600' : 'bg-orange-100 text-orange-600'
+                            <div key={`${activity.id}-${idx}`} className="p-2 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                                <div className="flex items-center gap-2">
+                                    <div className={`w-6 h-6 min-w-[24px] rounded-full flex items-center justify-center text-[10px] font-bold ${activity.type === 'purchase' ? 'bg-indigo-100 text-indigo-600' : 'bg-orange-100 text-orange-600'
                                         }`}>
                                         {activity.user.substring(0, 1)}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="text-xs text-slate-500 mb-0.5 flex items-center gap-1">
+                                        <div className="text-[10px] text-slate-500 mb-0 flex items-center gap-1">
                                             <span className="font-bold text-slate-900">{activity.user}</span>
                                             {activity.type === 'purchase' ? (
-                                                <span className="text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded text-[10px]">구매완료</span>
+                                                <span className="text-indigo-600 bg-indigo-50 px-1 py-0 rounded text-[9px]">구매완료</span>
                                             ) : (
-                                                <span className="text-orange-600 bg-orange-50 px-1 py-0.5 rounded text-[10px]">견적요청</span>
+                                                <span className="text-orange-600 bg-orange-50 px-1 py-0 rounded text-[9px]">견적요청</span>
                                             )}
                                         </div>
-                                        <div className="text-sm font-medium text-slate-800 truncate">
+                                        <div className="text-xs font-medium text-slate-800 truncate">
                                             {activity.item}
                                         </div>
                                     </div>
                                 </div>
-                                <span className="text-[10px] font-medium text-slate-400 whitespace-nowrap ml-2">
+                                <span className="text-[9px] font-medium text-slate-400 whitespace-nowrap ml-1.5">
                                     {activity.timeAgo}
                                 </span>
                             </div>

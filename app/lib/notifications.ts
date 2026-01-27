@@ -1,6 +1,6 @@
-import { Resend } from 'resend';
+// import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// const resend = new Resend(process.env.RESEND_API_KEY);
 
 // TODO: [중요] 여기에 알림을 받을 사장님의 이메일 주소를 입력하거나, .env 파일에 ADMIN_EMAIL_RECIPIENT를 설정하세요.
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL_RECIPIENT || 'admin@example.com';
@@ -11,11 +11,14 @@ interface NotificationData {
 }
 
 export async function sendAdminNotification({ type, data }: NotificationData) {
-    if (!process.env.RESEND_API_KEY) {
-        console.warn('RESEND_API_KEY is not set. Email notification skipped.');
-        return { success: false, error: 'API Key missing' };
-    }
+    // if (!process.env.RESEND_API_KEY) {
+    //     console.warn('RESEND_API_KEY is not set. Email notification skipped.');
+    //     return { success: false, error: 'API Key missing' };
+    // }
+    console.log('Email notification skipped (disabled for development)');
+    return { success: true, data: null };
 
+    /*
     try {
         let subject = '';
         let html = '';
@@ -61,4 +64,5 @@ export async function sendAdminNotification({ type, data }: NotificationData) {
         console.error('Notification Error:', error);
         return { success: false, error };
     }
+    */
 }

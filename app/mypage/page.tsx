@@ -351,16 +351,16 @@ export default function MyPage() {
   const getStatusBadge = (req: Request) => {
     // 상품 준비중 상태 확인 (주문됨 + 입금완료)
     if (req.status === 'ordered' && req.payment_status === 'deposit_paid') {
-      return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-indigo-100 text-indigo-800 border-indigo-300">상품 준비중 📦</span>
+      return <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-indigo-100 text-indigo-800 border-indigo-300">상품 준비중 📦</span>
     }
 
     switch (req.status) {
       case 'reviewed':
-        return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-blue-100 text-blue-800 border-blue-300">{t('mypage.status.reviewed')}</span>
+        return <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-blue-100 text-blue-800 border-blue-300">{t('mypage.status.reviewed')}</span>
       case 'ordered':
-        return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-green-100 text-green-800 border-green-300">{t('mypage.status.ordered')}</span>
+        return <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-green-100 text-green-800 border-green-300">{t('mypage.status.ordered')}</span>
       default:
-        return <span className="px-2.5 py-1 text-xs font-bold rounded-md border bg-yellow-100 text-yellow-800 border-yellow-300">{t('mypage.status.pending')}</span>
+        return <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-yellow-100 text-yellow-800 border-yellow-300">{t('mypage.status.pending')}</span>
     }
   }
 
@@ -375,19 +375,19 @@ export default function MyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50 p-2 md:p-4">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-6 flex justify-between items-center">
-          <h1 className="text-2xl font-black text-slate-900">{t('mypage.title')}</h1>
+        <div className="mb-3 flex justify-between items-center">
+          <h1 className="text-lg font-black text-slate-900">{t('mypage.title')}</h1>
           <div className="flex gap-2">
             <button
               onClick={() => router.push('/')}
-              className="text-xs bg-slate-900 text-white px-3 py-1 rounded font-bold"
+              className="text-[10px] bg-slate-900 text-white px-2.5 py-1 rounded font-bold"
             >
               {t('mypage.main')}
             </button>
             <LanguageSwitcher />
-            <button onClick={handleLogout} className="text-xs bg-red-100 text-red-600 px-3 py-1 rounded font-bold">{t('mypage.logout')}</button>
+            <button onClick={handleLogout} className="text-[10px] bg-red-100 text-red-600 px-2.5 py-1 rounded font-bold">{t('mypage.logout')}</button>
           </div>
         </div>
 
@@ -409,27 +409,27 @@ export default function MyPage() {
             )} */}
 
             {requests.map(req => (
-              <div key={req.id} className="bg-white p-4 rounded shadow border">
+              <div key={req.id} className="bg-white p-2.5 rounded-lg shadow-sm border">
                 {/* 헤더: 날짜 및 상태 */}
-                <div className="flex justify-between items-start mb-4">
-                  <span className="text-xs font-medium text-slate-400">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-[10px] font-medium text-slate-400">
                     {new Date(req.created_at).toLocaleString()}
                   </span>
 
                   <div className="flex gap-2">
                     {req.status === 'reviewed' && (
-                      <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold">
+                      <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-[10px] font-bold">
                         {t('mypage.status.reviewed')}
                       </span>
                     )}
                     {req.status === 'ordered' && (
-                      <span className="bg-green-500 text-white px-2 py-1 rounded text-xs font-bold flex items-center gap-1">
+                      <span className="bg-green-500 text-white px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1">
                         {t('mypage.status.ordered')}
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                       </span>
                     )}
                     {req.status === 'pending' && (
-                      <span className="bg-yellow-500 text-white px-2 py-1 rounded text-xs font-bold">
+                      <span className="bg-yellow-500 text-white px-2 py-0.5 rounded text-[10px] font-bold">
                         {t('mypage.status.pending')}
                       </span>
                     )}
@@ -438,9 +438,9 @@ export default function MyPage() {
 
                 {/* 주문/결제 정보 (주문됨 상태일 때) */}
                 {req.status === 'ordered' && (
-                  <div className="bg-indigo-50 p-4 rounded mb-4">
-                    <h3 className="text-indigo-900 font-bold mb-2">주문/결제 정보</h3>
-                    <div className="flex justify-between items-center">
+                  <div className="bg-indigo-50 p-2.5 rounded mb-2.5">
+                    <h3 className="text-indigo-900 font-bold mb-1 text-xs">주문/결제 정보</h3>
+                    <div className="flex justify-between items-center text-xs">
                       <span>입금 상태</span>
                       {req.payment_status === 'deposit_paid'
                         ? <span className="text-green-600 font-bold">입금 완료 ✅</span>
@@ -451,9 +451,9 @@ export default function MyPage() {
                 )}
 
                 {/* 상품 목록 */}
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {req.request_items.map(item => (
-                    <div key={item.id} className="border-t pt-4 mt-2 first:border-0 first:pt-0">
+                    <div key={item.id} className="border-t pt-2.5 mt-2.5 first:border-0 first:pt-0">
                       <div className="flex gap-4 items-start">
                         {/* 삭제 선택 체크박스 (임시 비활성화) */}
                         {/* <div className="pt-8">
@@ -466,42 +466,42 @@ export default function MyPage() {
                         </div> */}
 
                         {/* 썸네일 */}
-                        <div className="w-20 h-20 bg-slate-500 rounded-lg flex-shrink-0 overflow-hidden border">
+                        <div className="w-14 h-14 bg-slate-100 rounded flex-shrink-0 overflow-hidden border">
                           {item.og_image ? (
                             <img src={item.og_image} alt={item.og_title} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-slate-300">
-                              <span className="text-xs">No Image</span>
+                              <span className="text-[10px]">No Image</span>
                             </div>
                           )}
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-slate-800 line-clamp-2 mb-1">
+                          <h3 className="font-bold text-slate-800 line-clamp-2 mb-1 text-xs">
                             {item.og_title}
                           </h3>
 
                           {/* 상품 구분: 구매완료(Ordered) vs 텍스트 전송(User Response) */}
                           {req.status === 'ordered' ? (
-                            <div className="mt-2 text-sm bg-slate-50 p-2 rounded border border-slate-100">
+                            <div className="mt-1 text-xs bg-slate-50 p-1.5 rounded border border-slate-100">
                               <div className="flex justify-between items-center text-slate-700">
-                                <span className="font-bold">구매 수량: {itemSelections[item.id]?.quantity || item.user_quantity}개</span>
-                                <span className="font-bold text-indigo-600">
+                                <span className="font-bold text-[10px]">수량: {itemSelections[item.id]?.quantity || item.user_quantity}</span>
+                                <span className="font-bold text-indigo-600 text-[10px]">
                                   {(calculateTotal(item) > 0 ? calculateTotal(item).toLocaleString() + ' VND' : '가격 미정')}
                                 </span>
                               </div>
                               {item.user_selected_options && item.user_selected_options.optionName && (
-                                <div className="text-xs text-slate-500 mt-1">옵션: {item.user_selected_options.optionName}</div>
+                                <div className="text-[10px] text-slate-500 mt-0.5">옵션: {item.user_selected_options.optionName}</div>
                               )}
                             </div>
                           ) : item.user_response ? (
-                            <div className="mt-2 bg-yellow-50 p-3 rounded border border-yellow-100">
-                              <span className="text-xs font-bold text-yellow-800 block mb-1">📝 내가 보낸 요청:</span>
-                              <p className="text-sm text-slate-700">{item.user_response}</p>
+                            <div className="mt-1 bg-yellow-50 p-2 rounded border border-yellow-100">
+                              <span className="text-[10px] font-bold text-yellow-800 block mb-0.5">📝 요청:</span>
+                              <p className="text-xs text-slate-700">{item.user_response}</p>
                             </div>
                           ) : (
                             // 기본 표시 (아직 구매도 안했고, 답변도 안보낸 상태)
-                            <div className="text-slate-500 text-xs mt-2">
+                            <div className="text-slate-500 text-[10px] mt-1">
                               {t('mypage.quantity')}: {item.user_quantity || 1}
                             </div>
                           )}
@@ -528,7 +528,7 @@ export default function MyPage() {
                                     value={responseInputs[item.id] || ''}
                                     onChange={(e) => handleResponseChange(item.id, e.target.value)}
                                     placeholder="답변을 입력해주세요"
-                                    className="flex-1 px-3 py-2 border rounded text-xs"
+                                    className="flex-1 px-3 py-2 border rounded text-xs text-slate-900 placeholder:text-slate-400"
                                   />
                                   <button
                                     onClick={() => handleSubmitResponse(item.id)}
@@ -595,14 +595,16 @@ export default function MyPage() {
                                   <div className="flex items-center gap-3">
                                     <button
                                       onClick={() => handleQuantityChange(item.id, -1)}
-                                      className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50"
+                                      disabled={req.status === 'ordered' || item.item_status === 'approved'}
+                                      className="w-8 h-8 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-600"
                                     >
                                       -
                                     </button>
-                                    <span className="font-bold w-4 text-center">{itemSelections[item.id]?.quantity || 1}</span>
+                                    <span className="font-bold w-6 text-center text-slate-900">{itemSelections[item.id]?.quantity || 1}</span>
                                     <button
                                       onClick={() => handleQuantityChange(item.id, 1)}
-                                      className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50"
+                                      disabled={req.status === 'ordered' || item.item_status === 'approved'}
+                                      className="w-8 h-8 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-600"
                                     >
                                       +
                                     </button>
@@ -617,28 +619,28 @@ export default function MyPage() {
                   ))}
 
                   {/* 실시간 견적 합계 & 결제 버튼 */}
-                  {req.status === 'reviewed' && (
-                    <div className="mt-4 pt-4 border-t border-slate-100">
-                      <div className="bg-indigo-50 p-4 rounded-xl mb-4">
-                        <div className="flex justify-between items-center mb-2 text-sm text-slate-500">
+                  {(req.status === 'reviewed' || req.request_items.some(i => i.item_status === 'approved')) && (
+                    <div className="mt-3 pt-3 border-t border-slate-100">
+                      <div className="bg-indigo-50 p-3 rounded-lg mb-3">
+                        <div className="flex justify-between items-center mb-1 text-xs text-slate-500">
                           <span>상품 금액</span>
                           <span>{calculateRequestTotal(req).toLocaleString()} VND</span>
                         </div>
-                        <div className="flex justify-between items-center mb-2 text-sm text-slate-500">
+                        <div className="flex justify-between items-center mb-1 text-xs text-slate-500">
                           <span>배송비 (무게 기반)</span>
                           <span>+{calculateShipping(req).toLocaleString()} VND</span>
                         </div>
-                        <div className="border-t border-indigo-200 my-2"></div>
+                        <div className="border-t border-indigo-200 my-1"></div>
                         <div className="flex justify-between items-center">
-                          <span className="text-slate-600 font-bold">{t('mypage.checkout.total')}</span>
-                          <span className="text-xl font-black text-indigo-700">
+                          <span className="text-slate-600 font-bold text-xs">{t('mypage.checkout.total')}</span>
+                          <span className="text-base font-black text-indigo-700">
                             {calculateGrandTotal(req).toLocaleString()} VND
                           </span>
                         </div>
                       </div>
                       <button
                         onClick={() => handleRequestCheckout(req)}
-                        className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 shadow-md active:scale-95 transition-all text-lg"
+                        className="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 shadow-md active:scale-95 transition-all text-sm"
                       >
                         {t('mypage.checkout')}
                       </button>
@@ -650,6 +652,6 @@ export default function MyPage() {
           </div>
         )}
       </div>
-    </div>
+    </div >
   )
 }

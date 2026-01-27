@@ -25,13 +25,41 @@ export async function submitManualOrder({
     try {
         const supabase = createClient()
 
-        // 1. 요청 상태 업데이트 및 배송지 저장
+
+        // 1. Fetch current request to check status and preserve history
+        const { data: currentRequest, error: fetchError } = await supabase
+            .from('requests')
+            .select('*')
+            .eq('id', requestId)
+            .single()
+
+        if (fetchError) throw fetchError
+
+        // Prepare Payment History
+        let paymentHistory = (currentRequest.shipping_address as any)?.paymentHistory || []
+
+        // If the previous state was PAID, record it in history before resetting to Pending
+        if (currentRequest.payment_status === 'deposit_paid') {
+            paymentHistory.push({
+                date: new Date().toISOString(),
+                amount: currentRequest.deposit_amount,
+                type: 'deposit'
+            })
+        }
+
+        // Merge history into the new shipping address
+        const newShippingAddress = {
+            ...shippingAddress,
+            paymentHistory
+        }
+
+        // 2. Update request
         const { data, error: updateError } = await supabase
             .from('requests')
             .update({
-                status: 'ordered', // 일단 ordered로 변경하여 My Page에서 구분
-                payment_status: 'deposit_pending', // 입금 대기중
-                shipping_address: shippingAddress,
+                status: 'ordered',
+                payment_status: 'deposit_pending',
+                shipping_address: newShippingAddress, // Save with history
                 deposit_amount: depositAmount,
                 final_amount: finalAmount
             })
@@ -39,11 +67,6 @@ export async function submitManualOrder({
             .select()
 
         if (updateError) throw updateError
-        if (!data || data.length === 0) {
-            throw new Error('주문 상태 업데이트에 실패했습니다. (권한 부족 또는 요청을 찾을 수 없음)')
-        }
-
-        // 2. 관리자에게 알림 전송
         try {
             await sendAdminNotification({
                 type: 'NEW_ORDER',

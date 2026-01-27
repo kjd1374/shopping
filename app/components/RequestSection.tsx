@@ -400,7 +400,7 @@ const RequestSection = forwardRef<RequestSectionRef, RequestSectionProps>((props
         <button
           onClick={handleSubmit}
           disabled={submitLoading}
-          className="w-full mt-6 bg-indigo-600 text-white text-lg font-bold py-4 rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 disabled:opacity-50 active:scale-[0.98]"
+          className="w-full mt-3 bg-indigo-600 text-white text-sm font-bold py-3 rounded-xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200 disabled:opacity-50 active:scale-[0.98]"
         >
           {submitLoading ? t('request.submitting') : `${items.length}${t('request.submit')}`}
         </button>
