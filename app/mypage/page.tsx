@@ -358,11 +358,11 @@ export default function MyPage() {
       pending: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-yellow-100 text-yellow-800 border-yellow-300">{t('mypage.status.pending')}</span>,
       reviewed: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-blue-100 text-blue-800 border-blue-300">{t('mypage.status.reviewed')}</span>,
       ordered: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-green-100 text-green-800 border-green-300">{t('mypage.status.ordered')}</span>,
-      purchased: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-sky-100 text-sky-800 border-sky-300">구매 완료 ✅</span>,
-      shipped_kr: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-indigo-100 text-indigo-800 border-indigo-300">한국 배송 중 🚚</span>,
-      shipped_vn: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-purple-100 text-purple-800 border-purple-300">베트남 발송 ✈️</span>,
-      arrived: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-orange-100 text-orange-800 border-orange-300">현지 도착 🇻🇳</span>,
-      completed: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-slate-100 text-slate-800 border-slate-300">수령 완료 🎉</span>
+      purchased: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-sky-100 text-sky-800 border-sky-300">{t('mypage.status.purchased')} ✅</span>,
+      shipped_kr: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-indigo-100 text-indigo-800 border-indigo-300">{t('mypage.status.shipped_kr')} 🚚</span>,
+      shipped_vn: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-purple-100 text-purple-800 border-purple-300">{t('mypage.status.shipped_vn')} ✈️</span>,
+      arrived: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-orange-100 text-orange-800 border-orange-300">{t('mypage.status.arrived')} 🇻🇳</span>,
+      completed: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-slate-100 text-slate-800 border-slate-300">{t('mypage.status.completed')} 🎉</span>
     }
 
     return badges[req.status] || badges['pending']
@@ -645,7 +645,7 @@ export default function MyPage() {
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-100 text-slate-700 font-bold rounded-lg hover:bg-slate-200 transition-colors text-sm"
                   >
-                    💬 1:1 문의하기 (Zalo)
+                    {t('mypage.zalo_inquiry')}
                   </a>
                 </div>
               </div>

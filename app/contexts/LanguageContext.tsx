@@ -111,6 +111,12 @@ const translations: Record<Language, Record<string, string>> = {
     'mypage.status.pending': '대기중',
     'mypage.status.reviewed': '승인완료',
     'mypage.status.ordered': '주문접수',
+    'mypage.status.purchased': '구매 완료',
+    'mypage.status.shipped_kr': '한국 배송 중',
+    'mypage.status.shipped_vn': '베트남 발송',
+    'mypage.status.arrived': '현지 도착',
+    'mypage.status.completed': '수령 완료',
+    'mypage.zalo_inquiry': '💬 1:1 문의하기 (Zalo)',
     'mypage.checkout': '결제하기',
     'mypage.checkout.total': '총 견적 금액', // Added
     'mypage.section.ongoing': '🚀 진행 중인 주문',
@@ -313,6 +319,12 @@ const translations: Record<Language, Record<string, string>> = {
     'mypage.status.pending': 'Đang chờ',
     'mypage.status.reviewed': 'Đã duyệt',
     'mypage.status.ordered': 'Đã đặt hàng',
+    'mypage.status.purchased': 'Đã mua hàng',
+    'mypage.status.shipped_kr': 'Đang giao tại Hàn',
+    'mypage.status.shipped_vn': 'Đang gửi về VN',
+    'mypage.status.arrived': 'Đã đến nơi',
+    'mypage.status.completed': 'Đã nhận hàng',
+    'mypage.zalo_inquiry': '💬 Liên hệ 1:1 (Zalo)',
     'mypage.checkout': 'Thanh toán',
 
     // Checkout
