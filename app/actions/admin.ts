@@ -148,7 +148,7 @@ export async function confirmRequest(requestId: string) {
 }
 
 // 요청 상태 변경
-export async function updateRequestStatus(requestId: string, status: 'pending' | 'reviewed' | 'ordered') {
+export async function updateRequestStatus(requestId: string, status: string) {
   try {
     const supabase = createClient()
     const { error } = await supabase

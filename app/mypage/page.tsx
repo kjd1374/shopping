@@ -30,7 +30,7 @@ interface RequestItem {
 
 interface Request {
   id: string
-  status: 'pending' | 'reviewed' | 'ordered'
+  status: string
   payment_status?: 'unpaid' | 'deposit_pending' | 'deposit_paid' | 'final_pending' | 'paid'
   deposit_amount?: number
   final_amount?: number
@@ -349,19 +349,23 @@ export default function MyPage() {
   }
 
   const getStatusBadge = (req: Request) => {
-    // 상품 준비중 상태 확인 (주문됨 + 입금완료)
+    // 상품 준비중 상태 확인 (주문됨 + 입금완료) - Legacy compatible
     if (req.status === 'ordered' && req.payment_status === 'deposit_paid') {
       return <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-indigo-100 text-indigo-800 border-indigo-300">상품 준비중 📦</span>
     }
 
-    switch (req.status) {
-      case 'reviewed':
-        return <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-blue-100 text-blue-800 border-blue-300">{t('mypage.status.reviewed')}</span>
-      case 'ordered':
-        return <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-green-100 text-green-800 border-green-300">{t('mypage.status.ordered')}</span>
-      default:
-        return <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-yellow-100 text-yellow-800 border-yellow-300">{t('mypage.status.pending')}</span>
+    const badges: Record<string, React.ReactNode> = {
+      pending: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-yellow-100 text-yellow-800 border-yellow-300">{t('mypage.status.pending')}</span>,
+      reviewed: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-blue-100 text-blue-800 border-blue-300">{t('mypage.status.reviewed')}</span>,
+      ordered: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-green-100 text-green-800 border-green-300">{t('mypage.status.ordered')}</span>,
+      purchased: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-sky-100 text-sky-800 border-sky-300">구매 완료 ✅</span>,
+      shipped_kr: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-indigo-100 text-indigo-800 border-indigo-300">한국 배송 중 🚚</span>,
+      shipped_vn: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-purple-100 text-purple-800 border-purple-300">베트남 발송 ✈️</span>,
+      arrived: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-orange-100 text-orange-800 border-orange-300">현지 도착 🇻🇳</span>,
+      completed: <span className="px-2 py-0.5 text-[10px] font-bold rounded border bg-slate-100 text-slate-800 border-slate-300">수령 완료 🎉</span>
     }
+
+    return badges[req.status] || badges['pending']
   }
 
   const formatDate = (dateString: string) => {
@@ -417,22 +421,7 @@ export default function MyPage() {
                   </span>
 
                   <div className="flex gap-2">
-                    {req.status === 'reviewed' && (
-                      <span className="bg-blue-500 text-white px-2 py-0.5 rounded text-[10px] font-bold">
-                        {t('mypage.status.reviewed')}
-                      </span>
-                    )}
-                    {req.status === 'ordered' && (
-                      <span className="bg-green-500 text-white px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1">
-                        {t('mypage.status.ordered')}
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                      </span>
-                    )}
-                    {req.status === 'pending' && (
-                      <span className="bg-yellow-500 text-white px-2 py-0.5 rounded text-[10px] font-bold">
-                        {t('mypage.status.pending')}
-                      </span>
-                    )}
+                    {getStatusBadge(req)}
                   </div>
                 </div>
 
@@ -646,6 +635,18 @@ export default function MyPage() {
                       </button>
                     </div>
                   )}
+                </div>
+
+                {/* Zalo 문의 버튼 (항상 표시) */}
+                <div className="mt-3 pt-3 border-t border-slate-100">
+                  <a
+                    href="https://zalo.me"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 w-full py-2.5 bg-slate-100 text-slate-700 font-bold rounded-lg hover:bg-slate-200 transition-colors text-sm"
+                  >
+                    💬 1:1 문의하기 (Zalo)
+                  </a>
                 </div>
               </div>
             ))}

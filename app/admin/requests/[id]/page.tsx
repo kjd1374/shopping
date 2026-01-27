@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { getRequestDetails, updateRequestItem, confirmRequest } from '../../../actions/admin'
+import { getRequestDetails, updateRequestItem, confirmRequest, updateRequestStatus } from '../../../actions/admin'
 import { confirmDeposit } from '../../../actions/payment'
 import { useLanguage } from '../../../contexts/LanguageContext'
 
@@ -28,7 +28,7 @@ interface RequestItem {
 interface Request {
   id: string
   user_id: string | null
-  status: 'pending' | 'reviewed' | 'ordered'
+  status: string
   payment_status: 'deposit_pending' | 'deposit_paid' | null
   deposit_amount: number | null
   final_amount: number | null
@@ -227,6 +227,28 @@ export default function RequestDetailPage() {
     }
   }
 
+  const handleStatusChange = async (newStatus: string) => {
+    if (!confirm(`상태를 [${newStatus}]로 변경하시겠습니까?`)) return
+    setSaving(true)
+    const result = await updateRequestStatus(requestId, newStatus)
+    setSaving(false)
+    if (result.success) {
+      alert('상태가 변경되었습니다.')
+      fetchDetails()
+    } else {
+      alert('변경 실패: ' + result.error)
+    }
+  }
+
+  const DELIVERY_STATUSES = [
+    { value: 'ordered', label: '주문 접수 (Ordered)' },
+    { value: 'purchased', label: '구매 완료 (Purchased)' },
+    { value: 'shipped_kr', label: '한국 배송 중 (In KR)' },
+    { value: 'shipped_vn', label: '베트남 발송 (To VN)' },
+    { value: 'arrived', label: '현지 도착 (Arrived)' },
+    { value: 'completed', label: '수령 완료 (Completed)' },
+  ]
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 p-4 md:p-6">
@@ -261,16 +283,29 @@ export default function RequestDetailPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <span
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg ${request.status === 'pending'
-                ? 'bg-yellow-100 text-yellow-800'
-                : request.status === 'reviewed'
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-green-100 text-green-800'
-                }`}
-            >
-              {request.status === 'pending' ? t('admin.status.pending') : request.status === 'reviewed' ? t('admin.status.reviewed') : t('admin.status.ordered')}
-            </span>
+            <div className="flex items-center gap-3">
+              {['pending', 'reviewed'].includes(request.status) ? (
+                <span
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg ${request.status === 'pending'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-blue-100 text-blue-800'
+                    }`}
+                >
+                  {request.status === 'pending' ? t('admin.status.pending') : t('admin.status.reviewed')}
+                </span>
+              ) : (
+                <select
+                  value={request.status}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  disabled={saving}
+                  className="px-3 py-1.5 text-xs font-bold rounded-lg bg-green-100 text-green-800 border-none focus:ring-2 focus:ring-green-500 cursor-pointer"
+                >
+                  {DELIVERY_STATUSES.map(status => (
+                    <option key={status.value} value={status.value}>{status.label}</option>
+                  ))}
+                </select>
+              )}
+            </div>
           </div>
         </div>
 
