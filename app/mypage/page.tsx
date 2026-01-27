@@ -595,7 +595,7 @@ export default function MyPage() {
                                   <div className="flex items-center gap-3">
                                     <button
                                       onClick={() => handleQuantityChange(item.id, -1)}
-                                      disabled={req.status === 'ordered' || item.item_status === 'approved'}
+                                      disabled={item.item_status === 'approved'}
                                       className="w-8 h-8 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-600"
                                     >
                                       -
@@ -603,7 +603,7 @@ export default function MyPage() {
                                     <span className="font-bold w-6 text-center text-slate-900">{itemSelections[item.id]?.quantity || 1}</span>
                                     <button
                                       onClick={() => handleQuantityChange(item.id, 1)}
-                                      disabled={req.status === 'ordered' || item.item_status === 'approved'}
+                                      disabled={item.item_status === 'approved'}
                                       className="w-8 h-8 rounded-full bg-white border border-slate-300 flex items-center justify-center hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed text-slate-600"
                                     >
                                       +
