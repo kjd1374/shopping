@@ -36,7 +36,7 @@ export async function submitManualOrder({
         if (fetchError) throw fetchError
 
         // Prepare Payment History
-        let paymentHistory = (currentRequest.shipping_address as any)?.paymentHistory || []
+        const paymentHistory = (currentRequest.shipping_address as any)?.paymentHistory || []
 
         // If the previous state was PAID, record it in history before resetting to Pending
         if (currentRequest.payment_status === 'deposit_paid') {
